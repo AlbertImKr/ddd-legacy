@@ -1,7 +1,5 @@
 package racingcar;
 
-import java.util.Random;
-
 public class Car {
 
     private final String name;
@@ -14,15 +12,10 @@ public class Car {
         this.name = name;
     }
 
-    public void move(int condition) {
-        if (condition >= 4) {
+    public void move(MoveStrategy moveStrategy) {
+        if (moveStrategy.isMovable()) {
             position++;
         }
-    }
-
-    public void move() {
-        var condition = new Random().nextInt(0, 10);
-        move(condition);
     }
 
     public int getPosition() {
