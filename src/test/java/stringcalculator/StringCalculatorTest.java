@@ -1,6 +1,7 @@
 package stringcalculator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,4 +72,41 @@ class StringCalculatorTest {
         // then
         assertThat(result).isEqualTo(10);
     }
+
+    @DisplayName("숫자 이외의 값을 입력할 경우, RuntimeException이 발생한다.")
+    @Test
+    void if_input_string_contains_non_number_then_throw_exception() {
+        // given
+        String input = "1,2,a";
+
+        // when, then
+        assertThatThrownBy(() -> StringCalculator.add(input))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage(StringCalculator.NEGATIVE_NUMBER_AND_NON_NUMBER_ERROR_MESSAGE);
+    }
+
+    @DisplayName("음수를 입력할 경우, RuntimeException이 발생한다.")
+    @Test
+    void if_input_string_contains_negative_number_then_throw_exception() {
+        // given
+        String input = "1,2,-3";
+
+        // when, then
+        assertThatThrownBy(() -> StringCalculator.add(input))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage(StringCalculator.NEGATIVE_NUMBER_AND_NON_NUMBER_ERROR_MESSAGE);
+    }
+
+    @DisplayName("숫자 이외 및 음수의 경우 모두 RuntimeException이 발생한다.")
+    @Test
+    void if_input_string_contains_non_number_and_negative_number_then_throw_exception() {
+        // given
+        String input = "1,2,-3,a";
+
+        // when, then
+        assertThatThrownBy(() -> StringCalculator.add(input))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage(StringCalculator.NEGATIVE_NUMBER_AND_NON_NUMBER_ERROR_MESSAGE);
+    }
+
 }
