@@ -32,4 +32,17 @@ class StringCalculatorTest {
         // then
         assertThat(result).isEqualTo(6);
     }
+
+    @DisplayName("모두 구분자로 형성한 문자열을 입력할 경우, 0을 반환한다.")
+    @Test
+    void if_input_string_contains_only_delimiters_then_return_zero() {
+        // given
+        String input = ",:";
+
+        // when
+        int result = StringCalculator.add(input);
+
+        // then
+        assertThat(result).isZero();
+    }
 }
