@@ -10,7 +10,7 @@ public class StringCalculator {
     private static final String CUSTOM_DELIMITER_PREFIX = "//";
     private static final String CUSTOM_DELIMITER_SUFFIX = "\n";
     private static final String CUSTOM_DELIMITER_REGEX = "^//.*\n.+";
-    private static final String POSITIVE_NUMBER_REGEX = "^[0-9]*$";
+    private static final String POSITIVE_NUMBER_REGEX = "^\\d*$";
 
     private StringCalculator() {
         throw new IllegalStateException("Utility class");
@@ -20,7 +20,7 @@ public class StringCalculator {
         var realInput = input;
         var delimiter = DEFAULT_DELIMITER;
         if (Pattern.matches(CUSTOM_DELIMITER_REGEX, input)) {
-            delimiter = DEFAULT_DELIMITER + "|" + getCustomDelimiter(input);
+            delimiter = DEFAULT_DELIMITER + "|" + "[" + getCustomDelimiter(input) + "]";
             realInput = input.substring(input.indexOf(CUSTOM_DELIMITER_SUFFIX) + 1);
         }
         return Arrays.stream(realInput.split(delimiter))
