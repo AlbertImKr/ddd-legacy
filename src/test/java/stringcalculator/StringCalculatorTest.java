@@ -45,4 +45,17 @@ class StringCalculatorTest {
         // then
         assertThat(result).isZero();
     }
+
+    @DisplayName("커스텀 구분자는 '//'와 '\\n' 사이에 위치하며 커스텀 구분자를 추출한다.")
+    @Test
+    void extract_custom_delimiter_between_double_slash_and_new_line() {
+        // given
+        String input = "//;\n1;2;3";
+
+        // when
+        String customDelimiter = StringCalculator.getCustomDelimiter(input);
+
+        // then
+        assertThat(customDelimiter).isEqualTo(";");
+    }
 }
