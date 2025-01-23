@@ -58,4 +58,17 @@ class StringCalculatorTest {
         // then
         assertThat(customDelimiter).isEqualTo(";");
     }
+
+    @DisplayName("커스텀 구분자를 사용하는 문자열을 입력할 경우, 커스텀 구분자도 포함하여 덧셈을 수행한다.")
+    @Test
+    void if_input_string_contains_custom_delimiter_then_sum_numbers() {
+        // given
+        String input = "//;\n1;2;3:4";
+
+        // when
+        int result = StringCalculator.add(input);
+
+        // then
+        assertThat(result).isEqualTo(10);
+    }
 }
