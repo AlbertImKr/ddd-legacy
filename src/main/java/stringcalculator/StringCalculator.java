@@ -1,7 +1,6 @@
 package stringcalculator;
 
 import java.util.Arrays;
-import java.util.regex.Pattern;
 
 public class StringCalculator {
 
@@ -17,7 +16,7 @@ public class StringCalculator {
     public static int add(String input) {
         var realInput = input;
         var delimiter = DEFAULT_DELIMITER;
-        if (Pattern.matches(CUSTOM_DELIMITER_REGEX, input)) {
+        if (RegexCache.matches(CUSTOM_DELIMITER_REGEX, input)) {
             delimiter = DEFAULT_DELIMITER + "|" + "[" + getCustomDelimiter(input) + "]";
             realInput = input.substring(input.indexOf(CUSTOM_DELIMITER_SUFFIX) + 1);
         }
