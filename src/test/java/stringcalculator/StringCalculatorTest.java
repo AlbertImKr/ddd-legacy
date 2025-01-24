@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class StringCalculatorTest {
@@ -45,5 +46,16 @@ class StringCalculatorTest {
 
         // then
         assertThat(result).isEqualTo(6);
+    }
+
+    @DisplayName("빈 문자열 또는 null을 입력할 경우, 0을 반환한다.")
+    @ParameterizedTest
+    @NullAndEmptySource
+    void if_input_string_is_empty_or_null_then_return_zero(String input) {
+        // when
+        int result = StringCalculator.add(input);
+
+        // then
+        assertThat(result).isZero();
     }
 }

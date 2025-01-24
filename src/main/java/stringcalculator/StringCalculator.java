@@ -14,6 +14,9 @@ public class StringCalculator {
     }
 
     public static int add(String input) {
+        if (input == null || input.isEmpty()) {
+            return 0;
+        }
         var realInput = input;
         var delimiter = DEFAULT_DELIMITER;
         if (RegexCache.matches(CUSTOM_DELIMITER_REGEX, input)) {
