@@ -21,7 +21,8 @@ public class StringCalculator {
             realInput = input.substring(input.indexOf(CUSTOM_DELIMITER_SUFFIX) + 1);
         }
         return Arrays.stream(realInput.split(delimiter))
-                .mapToInt(PositiveNumberParser::parsePositiveNumber)
+                .map(PositiveNumber::of)
+                .mapToInt(PositiveNumber::value)
                 .sum();
     }
 
