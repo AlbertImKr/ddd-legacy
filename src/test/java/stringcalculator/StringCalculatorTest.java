@@ -58,4 +58,15 @@ class StringCalculatorTest {
         // then
         assertThat(result).isZero();
     }
+
+    @DisplayName("숫자 하나를 입력할 경우, 해당 숫자를 반환한다.")
+    @ParameterizedTest
+    @ValueSource(strings = {"1", "2", "3"})
+    void if_input_string_contains_one_number_then_return_number(String input) {
+        // when
+        int result = StringCalculator.add(input);
+
+        // then
+        assertThat(result).isEqualTo(Integer.parseInt(input));
+    }
 }
