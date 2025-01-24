@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class StringCalculator {
 
-    private static final String DEFAULT_DELIMITER = "[,:]";
+    private static final StringCalculatorDelimiter DEFAULT_DELIMITER = new StringCalculatorDelimiter(",|:");
     private static final String CUSTOM_DELIMITER_PREFIX = "//";
     private static final String CUSTOM_DELIMITER_SUFFIX = "\n";
     private static final String CUSTOM_DELIMITER_REGEX = "^//.*\n.+";
@@ -17,10 +17,11 @@ public class StringCalculator {
         var realInput = input;
         var delimiter = DEFAULT_DELIMITER;
         if (RegexCache.matches(CUSTOM_DELIMITER_REGEX, input)) {
-            delimiter = DEFAULT_DELIMITER + "|" + "[" + getCustomDelimiter(input) + "]";
-            realInput = input.substring(input.indexOf(CUSTOM_DELIMITER_SUFFIX) + 1);
+            delimiter = DEFAULT_DELIMITER.add(getCustomDelimiter(input));
+            var realInputStart = input.indexOf(CUSTOM_DELIMITER_SUFFIX) + 1;
+            realInput = input.substring(realInputStart);
         }
-        return Arrays.stream(realInput.split(delimiter))
+        return Arrays.stream(realInput.split(delimiter.value()))
                 .map(PositiveNumber::of)
                 .mapToInt(PositiveNumber::value)
                 .sum();
