@@ -2,9 +2,12 @@ package stringcalculator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -68,5 +71,115 @@ class StringCalculatorTest {
 
         // then
         assertThat(result).isEqualTo(Integer.parseInt(input));
+    }
+
+    @DisplayName("입력한 문자열이 null 또는 빈 문자열일 경우, true를 반환한다.")
+    @ParameterizedTest
+    @NullAndEmptySource
+    void if_input_string_is_null_or_empty_then_return_true(String input) {
+        // when
+        boolean result = StringCalculator.isNullOrEmpty(input);
+
+        // then
+        assertThat(result).isTrue();
+    }
+
+    @DisplayName("입력한 문자열이 null 또는 빈 문자열이 아닐 경우, false를 반환한다.")
+    @ParameterizedTest
+    @ValueSource(strings = {"1", "a", " ", "1,2,3"})
+    void if_input_string_is_not_null_or_empty_then_return_false(String input) {
+        // when
+        boolean result = StringCalculator.isNullOrEmpty(input);
+
+        // then
+        assertThat(result).isFalse();
+    }
+
+    @DisplayName("입력한 문자열에서 바디를 추출한다.")
+    @ParameterizedTest
+    @MethodSource("provideInputStringOfBody")
+    void extract_body_from_input_string(String input, String expected) {
+        // when
+        String result = StringCalculator.extractBody(input);
+
+        // then
+        assertThat(result).isEqualTo(expected);
+    }
+
+    static Stream<Arguments> provideInputStringOfBody() {
+        return Stream.of(
+                Arguments.of("1,2,3", "1,2,3"),
+                Arguments.of("//;\n1;2;3", "1;2;3"),
+                Arguments.of("1:2:3", "1:2:3"),
+                Arguments.of("//&\n1&2:3", "1&2:3"),
+                Arguments.of("//.\n1.2.3", "1.2.3")
+        );
+    }
+
+    @DisplayName("입력한 문자열에서 커스텀 구분자가 존재하는지 확인한다.")
+    @ParameterizedTest
+    @ValueSource(strings = {"//;\n1;2;3", "//&\n1&2:3", "//.\n1.2.3"})
+    void check_custom_delimiter_existence(String input) {
+        // when
+        boolean result = StringCalculator.hasCustomDelimiter(input);
+
+        // then
+        assertThat(result).isTrue();
+    }
+
+    @DisplayName("입력한 문자열에서 커스텀 구분자가 존재하지 않는지 확인한다.")
+    @ParameterizedTest
+    @ValueSource(strings = {"1,2,3", "1:2:3", "1,2:3"})
+    void check_custom_delimiter_non_existence(String input) {
+        // when
+        boolean result = StringCalculator.hasCustomDelimiter(input);
+
+        // then
+        assertThat(result).isFalse();
+    }
+
+    @DisplayName("입력한 문자열에서 구분자를 추출한다.")
+    @ParameterizedTest
+    @MethodSource("provideInputStringOfDefaultDelimiter")
+    void extract_delimiter_from_input_string(String input, String expected) {
+        // when
+        StringCalculatorDelimiter result = StringCalculator.extractDelimiter(input);
+
+        // then
+        assertThat(result.value()).isEqualTo(expected);
+    }
+
+    static Stream<Arguments> provideInputStringOfDefaultDelimiter() {
+        return Stream.of(
+                Arguments.of("1,2,3", ",|:"),
+                Arguments.of("//;\n1;2;3", ",|:|[;]"),
+                Arguments.of("1:2:3", ",|:"),
+                Arguments.of("//&\n1&2:3", ",|:|[&]"),
+                Arguments.of("//.\n1.2.3", ",|:|[.]")
+        );
+    }
+
+    @DisplayName("문자열을 구분자로 나누어 숫자를 합산한다.")
+    @ParameterizedTest
+    @MethodSource("provideInputStringOfSumNumbers")
+    void sum_numbers_by_splitting_string_with_delimiter(String input, String delimiterStr, int expected) {
+        // given
+        StringCalculatorDelimiter delimiter = new StringCalculatorDelimiter(delimiterStr);
+
+        // when
+        int result = StringCalculator.sumNumbers(input, delimiter);
+
+        // then
+        assertThat(result).isEqualTo(expected);
+    }
+
+    static Stream<Arguments> provideInputStringOfSumNumbers() {
+        return Stream.of(
+                Arguments.of("1,2,3", ",|:", 6),
+                Arguments.of("1;2;3", ",|:|[;]", 6),
+                Arguments.of("1:2:3", ",|:", 6),
+                Arguments.of("1&2:3", ",|:|[&]", 6),
+                Arguments.of("1.2.3", ",|:|[.]", 6)
+        );
     }
 }
