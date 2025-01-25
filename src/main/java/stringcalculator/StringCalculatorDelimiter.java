@@ -6,6 +6,8 @@ public record StringCalculatorDelimiter(String value) {
     private static final String CUSTOM_DELIMITER_HEADER = "//";
     private static final String CUSTOM_DELIMITER_SUFFIX = "\n";
     private static final String CUSTOM_DELIMITER_INPUT_PATTERN = "^//.*\n.+";
+    private static final String ADD_DELIMITER_FORMAT = "%s|[%s]";
+    private static final int CUSTOM_DELIMITER_SUFFIX_OFFSET = 1;
 
     public static boolean containsCustomDelimiter(String input) {
         return RegexCache.matches(CUSTOM_DELIMITER_INPUT_PATTERN, input);
@@ -13,7 +15,7 @@ public record StringCalculatorDelimiter(String value) {
 
     public static String removeCustomDelimiter(String input) {
         if (containsCustomDelimiter(input)) {
-            int realInputStart = input.indexOf(CUSTOM_DELIMITER_SUFFIX) + 1;
+            int realInputStart = input.indexOf(CUSTOM_DELIMITER_SUFFIX) + CUSTOM_DELIMITER_SUFFIX_OFFSET;
             return input.substring(realInputStart);
         }
         return input;
@@ -31,6 +33,6 @@ public record StringCalculatorDelimiter(String value) {
     }
 
     public StringCalculatorDelimiter add(String newDelimiter) {
-        return new StringCalculatorDelimiter(value + "|" + "[" + newDelimiter + "]");
+        return new StringCalculatorDelimiter(String.format(ADD_DELIMITER_FORMAT, value(), newDelimiter));
     }
 }

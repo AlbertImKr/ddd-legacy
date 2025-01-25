@@ -4,13 +4,15 @@ import java.util.Arrays;
 
 public class StringCalculator {
 
+    public static final int NO_INPUT_VALUE = 0;
+
     private StringCalculator() {
         throw new IllegalStateException("Utility class");
     }
 
     public static int add(String input) {
         if (StringHelper.isNullOrEmpty(input)) {
-            return 0;
+            return NO_INPUT_VALUE;
         }
         var body = StringCalculatorDelimiter.removeCustomDelimiter(input);
         var delimiter = StringCalculatorDelimiter.extractDelimiterObject(input);
