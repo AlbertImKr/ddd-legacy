@@ -14,16 +14,12 @@ public class StringCalculator {
     }
 
     public static int add(String input) {
-        if (isNullOrEmpty(input)) {
+        if (StringHelper.isNullOrEmpty(input)) {
             return 0;
         }
         var body = extractNumbersData(input);
         var delimiter = extractDelimiterObject(input);
         return sumDelimitedNumbers(body, delimiter);
-    }
-
-    public static boolean isNullOrEmpty(String input) {
-        return input == null || input.isEmpty();
     }
 
     public static String extractNumbersData(String input) {

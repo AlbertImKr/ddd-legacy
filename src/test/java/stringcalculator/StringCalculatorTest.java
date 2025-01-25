@@ -73,28 +73,6 @@ class StringCalculatorTest {
         assertThat(result).isEqualTo(Integer.parseInt(input));
     }
 
-    @DisplayName("입력한 문자열이 null 또는 빈 문자열일 경우, true를 반환한다.")
-    @ParameterizedTest
-    @NullAndEmptySource
-    void if_input_string_is_null_or_empty_then_return_true(String input) {
-        // when
-        boolean result = StringCalculator.isNullOrEmpty(input);
-
-        // then
-        assertThat(result).isTrue();
-    }
-
-    @DisplayName("입력한 문자열이 null 또는 빈 문자열이 아닐 경우, false를 반환한다.")
-    @ParameterizedTest
-    @ValueSource(strings = {"1", "a", " ", "1,2,3"})
-    void if_input_string_is_not_null_or_empty_then_return_false(String input) {
-        // when
-        boolean result = StringCalculator.isNullOrEmpty(input);
-
-        // then
-        assertThat(result).isFalse();
-    }
-
     @DisplayName("입력한 문자열에서 숫자 데이터를 추출한다.")
     @ParameterizedTest
     @MethodSource("provideInputStringOfBody")
