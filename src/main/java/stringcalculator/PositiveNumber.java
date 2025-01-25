@@ -7,7 +7,7 @@ public record PositiveNumber(int value) {
 
     public PositiveNumber {
         if (value < 0) {
-            throw new RuntimeException(String.format(NEGATIVE_NUMBER_ERROR_MESSAGE, value));
+            throw new IllegalArgumentException(String.format(NEGATIVE_NUMBER_ERROR_MESSAGE, value));
         }
     }
 
@@ -15,7 +15,7 @@ public record PositiveNumber(int value) {
         try {
             return new PositiveNumber(Integer.parseInt(number));
         } catch (NumberFormatException e) {
-            throw new RuntimeException(String.format(NON_NUMBER_ERROR_MESSAGE, number));
+            throw new IllegalArgumentException(String.format(NON_NUMBER_ERROR_MESSAGE, number));
         }
     }
 }

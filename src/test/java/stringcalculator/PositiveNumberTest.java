@@ -14,7 +14,7 @@ class PositiveNumberTest {
     void create_instance_if_value_is_negative_then_throw_exception(int value) {
         // when, then
         assertThatThrownBy(() -> new PositiveNumber(value))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage(String.format(PositiveNumber.NEGATIVE_NUMBER_ERROR_MESSAGE, value));
     }
 
@@ -24,7 +24,7 @@ class PositiveNumberTest {
     void create_instance_if_value_is_not_number_then_throw_exception(String value) {
         // when, then
         assertThatThrownBy(() -> PositiveNumber.of(value))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage(String.format(PositiveNumber.NON_NUMBER_ERROR_MESSAGE, value));
     }
 }
