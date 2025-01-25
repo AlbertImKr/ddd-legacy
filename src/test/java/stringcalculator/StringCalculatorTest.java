@@ -34,7 +34,7 @@ class StringCalculatorTest {
         String input = "//" + delimiter + "\n1" + delimiter + "2" + delimiter + "3";
 
         // when
-        String customDelimiter = StringCalculator.getCustomDelimiter(input);
+        String customDelimiter = StringCalculator.extractCustomDelimiter(input);
 
         // then
         assertThat(customDelimiter).isEqualTo(delimiter);
@@ -95,12 +95,12 @@ class StringCalculatorTest {
         assertThat(result).isFalse();
     }
 
-    @DisplayName("입력한 문자열에서 바디를 추출한다.")
+    @DisplayName("입력한 문자열에서 숫자 데이터를 추출한다.")
     @ParameterizedTest
     @MethodSource("provideInputStringOfBody")
-    void extract_body_from_input_string(String input, String expected) {
+    void extract_numbers_data_from_input_string(String input, String expected) {
         // when
-        String result = StringCalculator.extractBody(input);
+        String result = StringCalculator.extractNumbersData(input);
 
         // then
         assertThat(result).isEqualTo(expected);
@@ -116,34 +116,34 @@ class StringCalculatorTest {
         );
     }
 
-    @DisplayName("입력한 문자열에서 커스텀 구분자가 존재하는지 확인한다.")
+    @DisplayName("입력한 문자열에서 커스텀 구분자가 포함되어 있는지 확인한다.")
     @ParameterizedTest
     @ValueSource(strings = {"//;\n1;2;3", "//&\n1&2:3", "//.\n1.2.3"})
-    void check_custom_delimiter_existence(String input) {
+    void contains_custom_delimiter(String input) {
         // when
-        boolean result = StringCalculator.hasCustomDelimiter(input);
+        boolean result = StringCalculator.containsCustomDelimiter(input);
 
         // then
         assertThat(result).isTrue();
     }
 
-    @DisplayName("입력한 문자열에서 커스텀 구분자가 존재하지 않는지 확인한다.")
+    @DisplayName("입력한 문자열에서 커스텀 구분자가 포함되어 있지 않은 경우, false를 반환한다.")
     @ParameterizedTest
     @ValueSource(strings = {"1,2,3", "1:2:3", "1,2:3"})
-    void check_custom_delimiter_non_existence(String input) {
+    void does_not_contain_custom_delimiter(String input) {
         // when
-        boolean result = StringCalculator.hasCustomDelimiter(input);
+        boolean result = StringCalculator.containsCustomDelimiter(input);
 
         // then
         assertThat(result).isFalse();
     }
 
-    @DisplayName("입력한 문자열에서 구분자를 추출한다.")
+    @DisplayName("입력한 문자열에서 구분자 객체를 추출한다.")
     @ParameterizedTest
     @MethodSource("provideInputStringOfDefaultDelimiter")
-    void extract_delimiter_from_input_string(String input, String expected) {
+    void extract_delimiter_object_from_input_string(String input, String expected) {
         // when
-        StringCalculatorDelimiter result = StringCalculator.extractDelimiter(input);
+        StringCalculatorDelimiter result = StringCalculator.extractDelimiterObject(input);
 
         // then
         assertThat(result.value()).isEqualTo(expected);
@@ -159,7 +159,7 @@ class StringCalculatorTest {
         );
     }
 
-    @DisplayName("문자열을 구분자로 나누어 숫자를 합산한다.")
+    @DisplayName("숫자로 이루어진 문자열을 구분자로 나누어 합산한다.")
     @ParameterizedTest
     @MethodSource("provideInputStringOfSumNumbers")
     void sum_numbers_by_splitting_string_with_delimiter(String input, String delimiterStr, int expected) {
@@ -167,7 +167,7 @@ class StringCalculatorTest {
         StringCalculatorDelimiter delimiter = new StringCalculatorDelimiter(delimiterStr);
 
         // when
-        int result = StringCalculator.sumNumbers(input, delimiter);
+        int result = StringCalculator.sumDelimitedNumbers(input, delimiter);
 
         // then
         assertThat(result).isEqualTo(expected);
