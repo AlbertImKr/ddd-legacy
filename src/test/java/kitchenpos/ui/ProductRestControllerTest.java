@@ -3,6 +3,7 @@ package kitchenpos.ui;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.UUID;
@@ -65,5 +66,42 @@ class ProductRestControllerTest {
                                 .content(content))
                 // then
                 .andExpect(status().isCreated());
+    }
+
+    @DisplayName("상품의 가격 변경에 실패하면 400 Bad Request를 응답한다.")
+    @Test
+    void change_price_if_failed_then_responds_400_bad_request() throws Exception {
+        // given
+        var content = "{\"price\": 0}";
+        var productId = UUID.randomUUID();
+        given(productService.changePrice(any(), any())).willThrow(new IllegalArgumentException());
+
+        // when
+        mockMvc.perform(
+                        put("/api/products/{productId}/price", productId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(content))
+                // then
+                .andExpect(status().isBadRequest());
+    }
+
+    @DisplayName("상품의 가격 변경에 성공하면 200 OK를 응답한다.")
+    @Test
+    void change_price_if_succeeds_then_responds_200_ok() throws Exception {
+        // given
+        var content = "{\"price\": 1000}";
+        var product = new Product();
+        var productId = UUID.randomUUID();
+        product.setId(UUID.randomUUID());
+        product.setName("상품");
+        given(productService.changePrice(any(), any())).willReturn(product);
+
+        // when
+        mockMvc.perform(
+                        put("/api/products/{productId}/price", productId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(content))
+                // then
+                .andExpect(status().isOk());
     }
 }
