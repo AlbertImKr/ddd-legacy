@@ -1,13 +1,16 @@
 package kitchenpos.ui;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import kitchenpos.application.OrderTableService;
 import kitchenpos.config.TestConfig;
@@ -88,6 +91,45 @@ class OrderTableRestControllerTest {
 
             var uri = result.getResponse().getHeader("Location");
             assertThat(uri).isEqualTo("/api/order-tables/" + menuTableId);
+        }
+    }
+
+    @DisplayName("주문 테이블 사용")
+    @Nested
+    class SitOrderTable {
+
+        @DisplayName("주문 테이블이 존재하지 않는 경우 예외를 던진다.")
+        @Test
+        void if_order_table_does_not_exist_then_throw_exception() throws Exception {
+            // given
+            var orderTableId = UUID.randomUUID();
+
+            given(orderTableService.sit(orderTableId)).willThrow(new NoSuchElementException());
+
+            // when then
+            mockMvc.perform(put("/api/order-tables/{orderTableId}/sit", orderTableId))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @DisplayName("주문 테이블을 사용하면 주문 테이블을 반환한다.")
+        @Test
+        void if_succeed_then_return_order_table() throws Exception {
+            // given
+            var orderTableId = UUID.randomUUID();
+            var orderTable = new OrderTable();
+            orderTable.setId(orderTableId);
+
+            given(orderTableService.sit(orderTableId)).willReturn(orderTable);
+
+            // when
+            var result = mockMvc.perform(put("/api/order-tables/{orderTableId}/sit", orderTableId))
+                    // then
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            var response = objectMapper.readValue(result.getResponse().getContentAsString(), OrderTable.class);
+            assertThat(response).isNotNull();
+            assertThat(response.getId()).isEqualTo(orderTableId);
         }
     }
 }
