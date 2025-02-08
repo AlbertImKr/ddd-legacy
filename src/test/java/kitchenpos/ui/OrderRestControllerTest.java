@@ -3,6 +3,7 @@ package kitchenpos.ui;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -283,13 +284,35 @@ class OrderRestControllerTest {
             // given
             var orderId = UUID.randomUUID();
             var content = objectMapper.writeValueAsString(new HashMap<>());
-            given(orderService.complete(any())).willReturn(FixtureProvider.createFixOrder(orderId, OrderStatus.COMPLETED));
+            given(orderService.complete(any())).willReturn(
+                    FixtureProvider.createFixOrder(orderId, OrderStatus.COMPLETED));
 
             // when
             mockMvc.perform(
                             put("/api/orders/{orderId}/complete", orderId)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(content))
+                    // then
+                    .andExpect(status().isOk());
+        }
+    }
+
+    @DisplayName("주문 목록 조회")
+    @Nested
+    class ListOrders {
+
+        @DisplayName("주문 목록 조회 성공하면 200 OK를 응답한다.")
+        @Test
+        void if_succeeds_then_responds_200_ok() throws Exception {
+            // given
+            var order1 = FixtureProvider.createFixOrder(UUID.randomUUID(), OrderStatus.WAITING);
+            var order2 = FixtureProvider.createFixOrder(UUID.randomUUID(), OrderStatus.ACCEPTED);
+            given(orderService.findAll()).willReturn(List.of(order1, order2));
+
+            // when
+            mockMvc.perform(
+                            get("/api/orders")
+                                    .contentType(MediaType.APPLICATION_JSON))
                     // then
                     .andExpect(status().isOk());
         }
