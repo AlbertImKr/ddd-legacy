@@ -558,5 +558,44 @@ class MenuServiceTest {
             assertThat(changedMenu.getPrice()).isEqualTo(request.getPrice());
         }
     }
+
+    @DisplayName("메뉴를 숨긴다.")
+    @Nested
+    class MenuHide {
+
+        @DisplayName("메뉴가 존재하지 않으면 예외를 던진다.")
+        @Test
+        void if_menu_does_not_exist_then_throw_exception() {
+            // given
+            var menuId = UUID.randomUUID();
+            given(menuRepository.findById(menuId))
+                    .willReturn(Optional.empty());
+
+            // when
+            assertThatThrownBy(() -> menuService.hide(menuId))
+                    // then
+                    .isInstanceOf(NoSuchElementException.class);
+        }
+
+        @DisplayName("메뉴를 숨기는데 성공하면 메뉴를 반환한다.")
+        @Test
+        void if_menu_hide_is_successful_then_return_menu() {
+            // given
+            var menuId = UUID.randomUUID();
+            var menu = new Menu();
+            menu.setId(menuId);
+            menu.setDisplayed(true);
+
+            given(menuRepository.findById(menuId))
+                    .willReturn(Optional.of(menu));;
+
+            // when
+            var hiddenMenu = menuService.hide(menuId);
+
+            // then
+            assertThat(hiddenMenu).isNotNull();
+            assertThat(hiddenMenu.isDisplayed()).isFalse();
+        }
+    }
 }
 
