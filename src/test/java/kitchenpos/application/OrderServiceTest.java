@@ -18,6 +18,7 @@ import kitchenpos.domain.Order;
 import kitchenpos.domain.OrderLineItem;
 import kitchenpos.domain.OrderRepository;
 import kitchenpos.domain.OrderStatus;
+import kitchenpos.domain.OrderTable;
 import kitchenpos.domain.OrderTableRepository;
 import kitchenpos.domain.OrderType;
 import kitchenpos.infra.KitchenridersClient;
@@ -146,6 +147,17 @@ class OrderServiceTest {
         order.setDeliveryAddress(deliveryAddress);
         order.setOrderLineItems(orderLineItems);
         return order;
+    }
+
+    private static @NotNull Order createFixOrder(
+            OrderType orderType,
+            UUID orderTableId,
+            List<OrderLineItem> orderLineItems
+    ) {
+        var request = createFixOrder(orderType);
+        request.setOrderTableId(orderTableId);
+        request.setOrderLineItems(orderLineItems);
+        return request;
     }
 
     @DisplayName("배달")
@@ -1035,6 +1047,238 @@ class OrderServiceTest {
                 // then
                 assertThat(completedOrder).isNotNull();
                 assertThat(completedOrder.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+            }
+        }
+    }
+
+    @DisplayName("매장 내 식사")
+    @Nested
+    class EatIn {
+
+        @DisplayName("주문 생성")
+        @Nested
+        class Create {
+
+            @DisplayName("주문 타입이 null인 경우 예외를 던진다.")
+            @Test
+            void if_type_is_null_then_throw_exception() {
+                // given
+                var request = new Order();
+
+                // when, then
+                assertThatThrownBy(() -> orderService.create(request))
+                        .isInstanceOf(IllegalArgumentException.class);
+            }
+
+            @DisplayName("주문 상세 항목 목록이 null인 경우 예외를 던진다.")
+            @Test
+            void if_order_line_items_is_null_then_throw_exception() {
+                // given
+                var request = createFixOrder(OrderType.EAT_IN);
+
+                // when, then
+                assertThatThrownBy(() -> orderService.create(request))
+                        .isInstanceOf(IllegalArgumentException.class);
+            }
+
+            @DisplayName("주문 상세 항목 목록이 비어있는 경우 예외를 던진다.")
+            @Test
+            void if_order_line_items_is_empty_then_throw_exception() {
+                // given
+                var request = createFixOrder(OrderType.EAT_IN, List.of());
+
+                // when, then
+                assertThatThrownBy(() -> orderService.create(request))
+                        .isInstanceOf(IllegalArgumentException.class);
+            }
+
+            @DisplayName("주문 상세 항목의 개수와 메뉴의 개수가 다른 경우 예외를 던진다.")
+            @Test
+            void if_order_line_items_size_is_not_equal_to_menu_size_then_throw_exception() {
+                // given
+                var request = createFixOrder(OrderType.EAT_IN, List.of(new OrderLineItem()));
+
+                given(menuRepository.findAllByIdIn(anyList()))
+                        .willReturn(List.of());
+
+                // when, then
+                assertThatThrownBy(() -> orderService.create(request))
+                        .isInstanceOf(IllegalArgumentException.class);
+            }
+
+            @DisplayName("주문 상세 항목의 메뉴가 존재하지 않는 경우 예외를 던진다.")
+            @Test
+            void if_order_line_item_menu_does_not_exist_then_throw_exception() {
+                // given
+                var menu = createFixMenu(UUID.randomUUID());
+
+                var orderLineItem = createFixOrderLineItem(1L, menu.getId());
+
+                Order request = createFixOrder(OrderType.EAT_IN, List.of(orderLineItem));
+
+                given(menuRepository.findAllByIdIn(anyList()))
+                        .willReturn(List.of(menu));
+                given(menuRepository.findById(menu.getId()))
+                        .willReturn(Optional.empty());
+
+                // when, then
+                assertThatThrownBy(() -> orderService.create(request))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문 상세 항목의 메뉴가 미활성화된 경우 예외를 던진다.")
+            @Test
+            void if_order_line_item_menu_is_not_displayed_then_throw_exception() {
+                // given
+                var menu = createFixMenu(UUID.randomUUID());
+
+                OrderLineItem orderLineItem = createFixOrderLineItem(1L, menu.getId());
+
+                Order request = createFixOrder(OrderType.EAT_IN, List.of(orderLineItem));
+
+                given(menuRepository.findAllByIdIn(anyList()))
+                        .willReturn(List.of(menu));
+                given(menuRepository.findById(menu.getId()))
+                        .willReturn(Optional.of(menu));
+
+                // when, then
+                assertThatThrownBy(() -> orderService.create(request))
+                        .isInstanceOf(IllegalStateException.class);
+            }
+
+            @DisplayName("주문 상세 항목의 가격이 메뉴의 가격과 다른 경우 예외를 던진다.")
+            @Test
+            void if_order_line_item_price_is_not_equal_to_menu_price_then_throw_exception() {
+                // given
+
+                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+
+                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 2000L);
+
+                Order request = createFixOrder(OrderType.EAT_IN, List.of(orderLineItem));
+
+                given(menuRepository.findAllByIdIn(anyList()))
+                        .willReturn(List.of(menu));
+                given(menuRepository.findById(menu.getId()))
+                        .willReturn(Optional.of(menu));
+
+                // when, then
+                assertThatThrownBy(() -> orderService.create(request))
+                        .isInstanceOf(IllegalArgumentException.class);
+            }
+
+            @DisplayName("주문 테이블 번호가 null인 경우 예외를 던진다.")
+            @Test
+            void if_table_number_is_null_then_throw_exception() {
+                // given
+
+                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+
+                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
+
+                var request = createFixOrder(OrderType.EAT_IN, UUID.randomUUID(), List.of(orderLineItem));
+
+                given(menuRepository.findAllByIdIn(anyList()))
+                        .willReturn(List.of(menu));
+                given(menuRepository.findById(menu.getId()))
+                        .willReturn(Optional.of(menu));
+
+                // when, then
+                assertThatThrownBy(() -> orderService.create(request))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문 테이블이 존재하지 않는 경우 예외를 던진다.")
+            @Test
+            void if_table_does_not_exist_then_throw_exception() {
+                // given
+                var tableNumber = UUID.randomUUID();
+
+                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+
+                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
+
+                var request = createFixOrder(OrderType.EAT_IN, tableNumber, List.of(orderLineItem));
+
+                given(menuRepository.findAllByIdIn(anyList()))
+                        .willReturn(List.of(menu));
+                given(menuRepository.findById(menu.getId()))
+                        .willReturn(Optional.of(menu));
+
+                given(orderTableRepository.findById(tableNumber))
+                        .willReturn(Optional.empty());
+
+                // when, then
+                assertThatThrownBy(() -> orderService.create(request))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문 테이블이 활성화 상태가 아닌 경우 예외를 던진다.")
+            @Test
+            void if_table_is_not_displayed_then_throw_exception() {
+                // given
+                var tableNumber = UUID.randomUUID();
+
+                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+
+                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
+
+                var request = createFixOrder(OrderType.EAT_IN, tableNumber, List.of(orderLineItem));
+
+                given(menuRepository.findAllByIdIn(anyList()))
+                        .willReturn(List.of(menu));
+                given(menuRepository.findById(menu.getId()))
+                        .willReturn(Optional.of(menu));
+
+                var orderTable = new OrderTable();
+                orderTable.setOccupied(false);
+
+                given(orderTableRepository.findById(tableNumber))
+                        .willReturn(Optional.of(orderTable));
+
+                // when, then
+                assertThatThrownBy(() -> orderService.create(request))
+                        .isInstanceOf(IllegalStateException.class);
+            }
+
+            @DisplayName("주문 생성 성공하면 주문을 반환한다.")
+            @Test
+            void if_success_then_return_order() {
+                // given
+                var tableNumber = UUID.randomUUID();
+
+                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+
+                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
+
+                var request = createFixOrder(OrderType.EAT_IN, tableNumber, List.of(orderLineItem));
+
+                given(menuRepository.findAllByIdIn(anyList()))
+                        .willReturn(List.of(menu));
+                given(menuRepository.findById(menu.getId()))
+                        .willReturn(Optional.of(menu));
+
+                var orderTable = new OrderTable();
+                orderTable.setOccupied(true);
+
+                given(orderTableRepository.findById(tableNumber))
+                        .willReturn(Optional.of(orderTable));
+
+                given(orderRepository.save(any(Order.class)))
+                        .will(invocation -> invocation.getArgument(0));
+
+                // when
+                var order = orderService.create(request);
+
+                // then
+                assertThat(order).isNotNull();
+                Assertions.assertAll(
+                        () -> assertThat(order.getType()).isEqualTo(OrderType.EAT_IN),
+                        () -> assertThat(order.getStatus()).isEqualTo(OrderStatus.WAITING),
+                        () -> assertThat(order.getOrderDateTime()).isNotNull(),
+                        () -> assertThat(order.getOrderLineItems()).hasSize(1),
+                        () -> assertThat(order.getOrderTable()).isEqualTo(orderTable)
+                );
             }
         }
     }
