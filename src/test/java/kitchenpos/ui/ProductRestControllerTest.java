@@ -15,6 +15,7 @@ import kitchenpos.application.ProductService;
 import kitchenpos.config.TestConfig;
 import kitchenpos.domain.Product;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,108 +41,123 @@ class ProductRestControllerTest {
     @MockBean
     ProductService productService;
 
-    @DisplayName("상품이 생성에 실패하면 400 Bad Request를 응답한다.")
-    @Test
-    void create_product_if_failed_then_responds_400_bad_request() throws Exception {
-        // given
-        var name = "";
-        var price = 0;
-        var body = new HashMap<String, Object>() {{
-            put("name", name);
-            put("price", price);
-        }};
-        var content = objectMapper.writeValueAsString(body);
-        given(productService.create(any())).willThrow(new IllegalArgumentException());
+    @DisplayName("상품 목록 조회")
+    @Nested
+    class ListProducts {
 
-        // when
-        mockMvc.perform(
-                        post("/api/products")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(content))
-                // then
-                .andExpect(status().isBadRequest());
+        @DisplayName("상품 목록 조회에 성공하면 200 OK를 응답한다.")
+        @Test
+        void list_products_if_succeeds_then_responds_200_ok() throws Exception {
+            // given
+            given(productService.findAll()).willReturn(List.of());
+
+            // when
+            mockMvc.perform(
+                            get("/api/products"))
+                    // then
+                    .andExpect(status().isOk());
+        }
     }
 
-    @DisplayName("상품이 생성에 성공하면 201 Created를 응답한다.")
-    @Test
-    void create_product_if_succeeds_then_responds_201_created() throws Exception {
-        // given
-        var name = "상품";
-        var price = 1000;
-        var body = new HashMap<String, Object>() {{
-            put("name", name);
-            put("price", price);
-        }};
-        var content = objectMapper.writeValueAsString(body);
-        var product = new Product();
-        product.setId(UUID.randomUUID());
-        product.setName("상품");
-        given(productService.create(any())).willReturn(product);
+    @DisplayName("상품 생성")
+    @Nested
+    class CreateProduct {
 
-        // when
-        mockMvc.perform(
-                        post("/api/products")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(content))
-                // then
-                .andExpect(status().isCreated());
+        @DisplayName("상품이 생성에 실패하면 400 Bad Request를 응답한다.")
+        @Test
+        void create_product_if_failed_then_responds_400_bad_request() throws Exception {
+            // given
+            var name = "";
+            var price = 0;
+            var body = new HashMap<String, Object>() {{
+                put("name", name);
+                put("price", price);
+            }};
+            var content = objectMapper.writeValueAsString(body);
+            given(productService.create(any())).willThrow(new IllegalArgumentException());
+
+            // when
+            mockMvc.perform(
+                            post("/api/products")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isBadRequest());
+        }
+
+        @DisplayName("상품이 생성에 성공하면 201 Created를 응답한다.")
+        @Test
+        void create_product_if_succeeds_then_responds_201_created() throws Exception {
+            // given
+            var name = "상품";
+            var price = 1000;
+            var body = new HashMap<String, Object>() {{
+                put("name", name);
+                put("price", price);
+            }};
+            var content = objectMapper.writeValueAsString(body);
+            var product = new Product();
+            product.setId(UUID.randomUUID());
+            product.setName("상품");
+            given(productService.create(any())).willReturn(product);
+
+            // when
+            mockMvc.perform(
+                            post("/api/products")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isCreated());
+        }
     }
 
-    @DisplayName("상품의 가격 변경에 실패하면 400 Bad Request를 응답한다.")
-    @Test
-    void change_price_if_failed_then_responds_400_bad_request() throws Exception {
-        // given
-        var price = 1000;
-        var body = new HashMap<String, Object>() {{
-            put("price", price);
-        }};
-        var content = objectMapper.writeValueAsString(body);
-        var productId = UUID.randomUUID();
-        given(productService.changePrice(any(), any())).willThrow(new IllegalArgumentException());
+    @DisplayName("상품 가격 변경")
+    @Nested
+    class ChangeProductPrice {
 
-        // when
-        mockMvc.perform(
-                        put("/api/products/{productId}/price", productId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(content))
-                // then
-                .andExpect(status().isBadRequest());
-    }
+        @DisplayName("상품의 가격 변경에 실패하면 400 Bad Request를 응답한다.")
+        @Test
+        void change_price_if_failed_then_responds_400_bad_request() throws Exception {
+            // given
+            var price = 1000;
+            var body = new HashMap<String, Object>() {{
+                put("price", price);
+            }};
+            var content = objectMapper.writeValueAsString(body);
+            var productId = UUID.randomUUID();
+            given(productService.changePrice(any(), any())).willThrow(new IllegalArgumentException());
 
-    @DisplayName("상품의 가격 변경에 성공하면 200 OK를 응답한다.")
-    @Test
-    void change_price_if_succeeds_then_responds_200_ok() throws Exception {
-        // given
-        var price = 1000;
-        var body = new HashMap<String, Object>() {{
-            put("price", price);
-        }};
-        var content = objectMapper.writeValueAsString(body);
-        var product = new Product();
-        var productId = UUID.randomUUID();
-        product.setId(UUID.randomUUID());
-        product.setName("상품");
-        given(productService.changePrice(any(), any())).willReturn(product);
+            // when
+            mockMvc.perform(
+                            put("/api/products/{productId}/price", productId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isBadRequest());
+        }
 
-        // when
-        mockMvc.perform(
-                        put("/api/products/{productId}/price", productId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(content))
-                // then
-                .andExpect(status().isOk());
-    }
+        @DisplayName("상품의 가격 변경에 성공하면 200 OK를 응답한다.")
+        @Test
+        void change_price_if_succeeds_then_responds_200_ok() throws Exception {
+            // given
+            var price = 1000;
+            var body = new HashMap<String, Object>() {{
+                put("price", price);
+            }};
+            var content = objectMapper.writeValueAsString(body);
+            var product = new Product();
+            var productId = UUID.randomUUID();
+            product.setId(UUID.randomUUID());
+            product.setName("상품");
+            given(productService.changePrice(any(), any())).willReturn(product);
 
-    @DisplayName("상품 목록 조회에 성공하면 200 OK를 응답한다.")
-    @Test
-    void list_products_if_succeeds_then_responds_200_ok() throws Exception {
-        // given
-        given(productService.findAll()).willReturn(List.of());
-
-        // when
-        mockMvc.perform(
-                        get("/api/products"))
-                // then
-                .andExpect(status().isOk());
+            // when
+            mockMvc.perform(
+                            put("/api/products/{productId}/price", productId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isOk());
+        }
     }
 }
