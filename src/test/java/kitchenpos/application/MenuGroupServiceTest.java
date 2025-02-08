@@ -5,10 +5,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import java.util.List;
 import kitchenpos.domain.MenuGroup;
 import kitchenpos.domain.MenuGroupRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -25,6 +27,20 @@ class MenuGroupServiceTest {
 
     @Mock
     private MenuGroupRepository menuGroupRepository;
+
+    @DisplayName("메뉴 그룹 목록을 조회한다.")
+    @Test
+    void find_all_menu_groups() {
+        // given
+        given(menuGroupRepository.findAll())
+                .willReturn(List.of(new MenuGroup(), new MenuGroup()));
+
+        // when
+        var menuGroups = menuGroupService.findAll();
+
+        // then
+        assertThat(menuGroups).hasSize(2);
+    }
 
     @DisplayName("메뉴 그룹을 생성한다.")
     @Nested
