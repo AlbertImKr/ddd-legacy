@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
@@ -256,6 +257,51 @@ class OrderTableServiceTest {
             // then
             assertThat(result).isNotNull();
             assertThat(result.getNumberOfGuests()).isEqualTo(4);
+        }
+    }
+
+    @DisplayName("주문 테이블 목록 조회")
+    @Nested
+    class ListOrderTables {
+
+        @DisplayName("주문 테이블이 존재하지 않는 경우 빈 목록을 반환한다.")
+        @Test
+        void if_order_tables_do_not_exist_then_return_empty_list() {
+            // given
+            given(orderTableRepository.findAll())
+                    .willReturn(List.of());
+
+            // when
+            var result = orderTableService.findAll();
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @DisplayName("주문 테이블이 존재하는 경우 주문 테이블 목록을 반환한다.")
+        @Test
+        void if_order_tables_exist_then_return_order_tables() {
+            // given
+            var orderTable1 = new OrderTable();
+            orderTable1.setId(UUID.randomUUID());
+            orderTable1.setName("테이블1");
+            orderTable1.setNumberOfGuests(2);
+            orderTable1.setOccupied(true);
+
+            var orderTable2 = new OrderTable();
+            orderTable2.setId(UUID.randomUUID());
+            orderTable2.setName("테이블2");
+            orderTable2.setNumberOfGuests(4);
+            orderTable2.setOccupied(false);
+
+            given(orderTableRepository.findAll())
+                    .willReturn(List.of(orderTable1, orderTable2));
+
+            // when
+            var result = orderTableService.findAll();
+
+            // then
+            assertThat(result).hasSize(2);
         }
     }
 }
