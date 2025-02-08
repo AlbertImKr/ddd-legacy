@@ -1,7 +1,6 @@
 package kitchenpos.ui;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -162,6 +161,54 @@ class OrderTableRestControllerTest {
 
             // when
             var result = mockMvc.perform(put("/api/order-tables/{orderTableId}/clear", orderTableId))
+                    // then
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            var response = objectMapper.readValue(result.getResponse().getContentAsString(), OrderTable.class);
+            assertThat(response).isNotNull();
+            assertThat(response.getId()).isEqualTo(orderTableId);
+        }
+    }
+
+    @DisplayName("주문 테이블 인원 변경")
+    @Nested
+    class ChangeNumberOfGuests {
+
+        @DisplayName("주문 테이블 인원 변경 실패하면 400 Bad Request를 응답한다.")
+        @Test
+        void if_failed_then_responds_400_bad_request() throws Exception {
+            // given
+            var orderTableId = UUID.randomUUID();
+            var orderTable = new OrderTable();
+            orderTable.setId(orderTableId);
+
+            given(orderTableService.changeNumberOfGuests(any(UUID.class), any(OrderTable.class)))
+                    .willThrow(new IllegalArgumentException());
+
+            // when
+            mockMvc.perform(put("/api/order-tables/{orderTableId}/number-of-guests", orderTableId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(orderTable)))
+                    // then
+                    .andExpect(status().isBadRequest());
+        }
+
+        @DisplayName("주문 테이블 인원 변경 성공하면 주문 테이블을 반환한다.")
+        @Test
+        void if_succeed_then_return_order_table() throws Exception {
+            // given
+            var orderTableId = UUID.randomUUID();
+            var orderTable = new OrderTable();
+            orderTable.setId(orderTableId);
+
+            given(orderTableService.changeNumberOfGuests(any(UUID.class), any(OrderTable.class)))
+                    .willReturn(orderTable);
+
+            // when
+            var result = mockMvc.perform(put("/api/order-tables/{orderTableId}/number-of-guests", orderTableId)
+                                                 .contentType(MediaType.APPLICATION_JSON)
+                                                 .content(objectMapper.writeValueAsString(orderTable)))
                     // then
                     .andExpect(status().isOk())
                     .andReturn();
