@@ -3,6 +3,7 @@ package kitchenpos.ui;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -243,6 +244,32 @@ class MenuRestControllerTest {
             mockMvc.perform(put("/api/menus/" + menuId + "/hide"))
                     // then
                     .andExpect(status().isBadRequest());
+        }
+    }
+
+    @DisplayName("메뉴 목록 조회")
+    @Nested
+    class FindAllMenus {
+
+        @DisplayName("메뉴 목록 조회 성공하면 200 OK를 응답한다.")
+        @Test
+        void if_succeeds_then_responds_200_ok() throws Exception {
+            // given
+            var menu = new Menu();
+            menu.setId(UUID.randomUUID());
+
+            given(menuService.findAll())
+                    .willReturn(List.of(menu));
+
+            // when
+            MvcResult mvcResult = mockMvc.perform(get("/api/menus"))
+                    // then
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            var response = mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
+            var responseMenu = objectMapper.readValue(response, List.class);
+            assertThat(responseMenu).hasSize(1);
         }
     }
 }
