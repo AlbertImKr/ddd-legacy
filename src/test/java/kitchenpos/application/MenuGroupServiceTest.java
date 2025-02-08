@@ -28,18 +28,23 @@ class MenuGroupServiceTest {
     @Mock
     private MenuGroupRepository menuGroupRepository;
 
-    @DisplayName("메뉴 그룹 목록을 조회한다.")
-    @Test
-    void find_all_menu_groups() {
-        // given
-        given(menuGroupRepository.findAll())
-                .willReturn(List.of(new MenuGroup(), new MenuGroup()));
+    @DisplayName("메뉴 그룹 목록 조회")
+    @Nested
+    class FindAllMenuGroups {
 
-        // when
-        var menuGroups = menuGroupService.findAll();
+        @DisplayName("메뉴 그룹 목록을 조회한다.")
+        @Test
+        void if_success_then_return_menu_groups() {
+            // given
+            given(menuGroupRepository.findAll())
+                    .willReturn(List.of(new MenuGroup(), new MenuGroup()));
 
-        // then
-        assertThat(menuGroups).hasSize(2);
+            // when
+            var menuGroups = menuGroupService.findAll();
+
+            // then
+            assertThat(menuGroups).hasSize(2);
+        }
     }
 
     @DisplayName("메뉴 그룹을 생성한다.")
