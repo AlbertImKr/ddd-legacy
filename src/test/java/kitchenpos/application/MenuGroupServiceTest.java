@@ -32,7 +32,7 @@ class MenuGroupServiceTest {
     @Nested
     class FindAllMenuGroups {
 
-        @DisplayName("메뉴 그룹 목록을 조회한다.")
+        @DisplayName("메뉴 그룹 목록 조회 성공하면 메뉴 그룹 목록을 반환한다.")
         @Test
         void if_success_then_return_menu_groups() {
             // given
@@ -47,7 +47,7 @@ class MenuGroupServiceTest {
         }
     }
 
-    @DisplayName("메뉴 그룹을 생성한다.")
+    @DisplayName("메뉴 그룹 생성")
     @Nested
     class MenuGroupCreate {
 
@@ -65,7 +65,7 @@ class MenuGroupServiceTest {
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
-        @DisplayName("메뉴 그룹을 생성 성공하면 메뉴 그룹을 반환한다.")
+        @DisplayName("메뉴 그룹 생성 성공하면 메뉴 그룹을 반환한다.")
         @ParameterizedTest
         @ValueSource(strings = {"치킨", "사이드 메뉴", "음료"})
         void if_success_then_return_menu_group(String name) {

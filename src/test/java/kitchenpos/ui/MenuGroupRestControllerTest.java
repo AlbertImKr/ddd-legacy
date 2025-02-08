@@ -49,7 +49,7 @@ class MenuGroupRestControllerTest {
     class CreateMenuGroup {
 
 
-        @DisplayName("메뉴 그룹이 생성에 실패하면 400 Bad Request를 응답한다.")
+        @DisplayName("메뉴 그룹 생성 실패하면 400 Bad Request를 응답한다.")
         @Test
         void if_failed_then_responds_400_bad_request() throws Exception {
             // given
@@ -70,7 +70,7 @@ class MenuGroupRestControllerTest {
         }
 
 
-        @DisplayName("메뉴 그룹이 생성에 성공하면 201 Created를 응답한다.")
+        @DisplayName("메뉴 그룹 생성 성공하면 201 Created를 응답한다.")
         @Test
         void if_succeeds_then_responds_201_created() throws Exception {
             // given
@@ -96,7 +96,7 @@ class MenuGroupRestControllerTest {
     @Nested
     class ListMenuGroups {
 
-        @DisplayName("메뉴 그룹 목록을 조회 성공하면 200 OK를 응답한다.")
+        @DisplayName("메뉴 그룹 목록 조회 성공하면 200 OK를 응답한다.")
         @Test
         void if_succeeds_then_responds_200_ok() throws Exception {
             // given

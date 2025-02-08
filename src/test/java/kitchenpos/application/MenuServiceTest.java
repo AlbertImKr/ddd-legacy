@@ -47,7 +47,7 @@ class MenuServiceTest {
     @Mock
     PurgomalumClient purgomalumClient;
 
-    @DisplayName("메뉴를 생성한다.")
+    @DisplayName("메뉴 생성")
     @Nested
     class MenuCreate {
 
@@ -382,7 +382,7 @@ class MenuServiceTest {
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
-        @DisplayName("메뉴를 생성이 성공하면 메뉴를 반환한다.")
+        @DisplayName("메뉴 생성 성공하면 메뉴를 반환한다.")
         @Test
         void if_menu_create_is_successful_then_return_menu() {
             // given
@@ -438,7 +438,7 @@ class MenuServiceTest {
         }
     }
 
-    @DisplayName("메뉴의 가격을 변경한다.")
+    @DisplayName("메뉴 가격 변경")
     @Nested
     class MenuChangePrice {
 
@@ -526,7 +526,7 @@ class MenuServiceTest {
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
-        @DisplayName("메뉴의 가격을 변경이 성공하면 메뉴를 반환한다.")
+        @DisplayName("메뉴 가격 변경 성공하면 메뉴를 반환한다.")
         @Test
         void if_menu_change_price_is_successful_then_return_menu() {
             // given
@@ -559,7 +559,7 @@ class MenuServiceTest {
         }
     }
 
-    @DisplayName("메뉴를 활성화한다.")
+    @DisplayName("메뉴 활성화")
     @Nested
     class MenuDisplay {
 
@@ -614,7 +614,7 @@ class MenuServiceTest {
                     .isInstanceOf(IllegalStateException.class);
         }
 
-        @DisplayName("메뉴를 활성화하는데 성공하면 메뉴를 반환한다.")
+        @DisplayName("메뉴 활성화 성공하면 메뉴를 반환한다.")
         @Test
         void if_menu_display_is_successful_then_return_menu() {
             // given
@@ -637,7 +637,7 @@ class MenuServiceTest {
         }
     }
 
-    @DisplayName("메뉴를 숨긴다.")
+    @DisplayName("메뉴 비활성화")
     @Nested
     class MenuHide {
 
@@ -655,7 +655,7 @@ class MenuServiceTest {
                     .isInstanceOf(NoSuchElementException.class);
         }
 
-        @DisplayName("메뉴를 숨기는데 성공하면 메뉴를 반환한다.")
+        @DisplayName("메뉴 비활성화 성공하면 메뉴를 반환한다.")
         @Test
         void if_menu_hide_is_successful_then_return_menu() {
             // given
@@ -665,7 +665,7 @@ class MenuServiceTest {
             menu.setDisplayed(true);
 
             given(menuRepository.findById(menuId))
-                    .willReturn(Optional.of(menu));;
+                    .willReturn(Optional.of(menu));
 
             // when
             var hiddenMenu = menuService.hide(menuId);

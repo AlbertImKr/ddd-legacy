@@ -45,7 +45,7 @@ class MenuRestControllerTest {
     @Nested
     class ChangePrice {
 
-        @DisplayName("메뉴의 가격을 변경하면 200 OK를 응답한다.")
+        @DisplayName("메뉴 가격 변경 성공하면 200 OK를 응답한다.")
         @Test
         void change_price_if_succeeds_then_responds_200_ok() throws Exception {
             // given
@@ -74,7 +74,7 @@ class MenuRestControllerTest {
             assertThat(responseMenu.getId()).isEqualTo(menuId);
         }
 
-        @DisplayName("메뉴의 가격 변경에 실패하면 400 Bad Request를 응답한다.")
+        @DisplayName("메뉴 가격 변경 실패하면 400 Bad Request를 응답한다.")
         @Test
         void change_price_if_failed_then_responds_400_bad_request() throws Exception {
             // given
@@ -101,7 +101,7 @@ class MenuRestControllerTest {
     @Nested
     class CreatMenu {
 
-        @DisplayName("메뉴가 생성에 실패하면 400 Bad Request를 응답한다.")
+        @DisplayName("메뉴 생성 실패하면 400 Bad Request를 응답한다.")
         @Test
         void if_failed_then_responds_400_bad_request() throws Exception {
             // given
@@ -127,7 +127,7 @@ class MenuRestControllerTest {
                     .andExpect(status().isBadRequest());
         }
 
-        @DisplayName("메뉴가 생성에 성공하면 201 Created를 응답한다.")
+        @DisplayName("메뉴 생성 성공하면 201 Created를 응답한다.")
         @Test
         void if_succeeds_then_responds_201_created() throws Exception {
             // given
@@ -166,7 +166,7 @@ class MenuRestControllerTest {
     @Nested
     class DisplayMenu {
 
-        @DisplayName("메뉴 활성화에 성공하면 200 OK를 응답한다.")
+        @DisplayName("메뉴 활성화 성공하면 200 OK를 응답한다.")
         @Test
         void if_succeeds_then_responds_200_ok() throws Exception {
             // given
@@ -188,7 +188,7 @@ class MenuRestControllerTest {
             assertThat(responseMenu.getId()).isEqualTo(menuId);
         }
 
-        @DisplayName("메뉴 활성화에 실패하면 400 Bad Request를 응답한다.")
+        @DisplayName("메뉴 활성화 실패하면 400 Bad Request를 응답한다.")
         @Test
         void if_failed_then_responds_400_bad_request() throws Exception {
             // given
@@ -199,6 +199,48 @@ class MenuRestControllerTest {
 
             // when
             mockMvc.perform(put("/api/menus/" + menuId + "/display"))
+                    // then
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @DisplayName("메뉴 비활성화")
+    @Nested
+    class HideMenu {
+
+        @DisplayName("메뉴 비활성화 성공하면 200 OK를 응답한다.")
+        @Test
+        void if_succeeds_then_responds_200_ok() throws Exception {
+            // given
+            var menuId = UUID.randomUUID();
+            var menu = new Menu();
+            menu.setId(menuId);
+
+            given(menuService.hide(any()))
+                    .willReturn(menu);
+
+            // when
+            MvcResult mvcResult = mockMvc.perform(put("/api/menus/" + menuId + "/hide"))
+                    // then
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            var response = mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
+            var responseMenu = objectMapper.readValue(response, Menu.class);
+            assertThat(responseMenu.getId()).isEqualTo(menuId);
+        }
+
+        @DisplayName("메뉴 비활성화 실패하면 400 Bad Request를 응답한다.")
+        @Test
+        void if_failed_then_responds_400_bad_request() throws Exception {
+            // given
+            var menuId = UUID.randomUUID();
+
+            given(menuService.hide(any()))
+                    .willThrow(new IllegalArgumentException());
+
+            // when
+            mockMvc.perform(put("/api/menus/" + menuId + "/hide"))
                     // then
                     .andExpect(status().isBadRequest());
         }

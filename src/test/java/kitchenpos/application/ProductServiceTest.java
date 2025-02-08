@@ -69,7 +69,7 @@ class ProductServiceTest {
         }
     }
 
-    @DisplayName("상품을 생성한다.")
+    @DisplayName("상품 생성")
     @Nested
     class CreateProduct {
 
@@ -132,7 +132,7 @@ class ProductServiceTest {
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
-        @DisplayName("상품을 성공하면 저장된 상품을 반환한다.")
+        @DisplayName("상품 생성 성공하면 저장된 상품을 반환한다.")
         @Test
         void if_success_then_return_saved_product() {
             // given
@@ -156,7 +156,7 @@ class ProductServiceTest {
         }
     }
 
-    @DisplayName("상품의 가격을 변경한다.")
+    @DisplayName("상품 가격 변경")
     @Nested
     class ChangeProductPrice {
 
@@ -206,7 +206,7 @@ class ProductServiceTest {
                     .isInstanceOf(java.util.NoSuchElementException.class);
         }
 
-        @DisplayName("상품의 가격을 변경하면 상품을 반환한다.")
+        @DisplayName("상품 가격 변경 성공하면 상품을 반환한다.")
         @Test
         void if_success_then_return_changed_product() {
             // given

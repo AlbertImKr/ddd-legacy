@@ -45,7 +45,7 @@ class ProductRestControllerTest {
     @Nested
     class ListProducts {
 
-        @DisplayName("상품 목록 조회에 성공하면 200 OK를 응답한다.")
+        @DisplayName("상품 목록 조회 성공하면 200 OK를 응답한다.")
         @Test
         void if_succeeds_then_responds_200_ok() throws Exception {
             // given
@@ -63,7 +63,7 @@ class ProductRestControllerTest {
     @Nested
     class CreateProduct {
 
-        @DisplayName("상품이 생성에 실패하면 400 Bad Request를 응답한다.")
+        @DisplayName("상품이 생성 실패하면 400 Bad Request를 응답한다.")
         @Test
         void if_failed_then_responds_400_bad_request() throws Exception {
             // given
@@ -85,7 +85,7 @@ class ProductRestControllerTest {
                     .andExpect(status().isBadRequest());
         }
 
-        @DisplayName("상품이 생성에 성공하면 201 Created를 응답한다.")
+        @DisplayName("상품이 생성 성공하면 201 Created를 응답한다.")
         @Test
         void if_succeeds_then_responds_201_created() throws Exception {
             // given
@@ -115,7 +115,7 @@ class ProductRestControllerTest {
     @Nested
     class ChangeProductPrice {
 
-        @DisplayName("상품의 가격 변경에 실패하면 400 Bad Request를 응답한다.")
+        @DisplayName("상품의 가격 변경 실패하면 400 Bad Request를 응답한다.")
         @Test
         void if_failed_then_responds_400_bad_request() throws Exception {
             // given
@@ -136,7 +136,7 @@ class ProductRestControllerTest {
                     .andExpect(status().isBadRequest());
         }
 
-        @DisplayName("상품의 가격 변경에 성공하면 200 OK를 응답한다.")
+        @DisplayName("상품의 가격 변경 성공하면 200 OK를 응답한다.")
         @Test
         void if_succeeds_then_responds_200_ok() throws Exception {
             // given
