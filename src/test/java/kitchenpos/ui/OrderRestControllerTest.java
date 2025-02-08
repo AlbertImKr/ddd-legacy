@@ -1,0 +1,99 @@
+package kitchenpos.ui;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+import kitchenpos.application.OrderService;
+import kitchenpos.config.TestConfig;
+import kitchenpos.domain.OrderStatus;
+import kitchenpos.util.FixtureProvider;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+
+@ExtendWith(SpringExtension.class)
+@WebMvcTest(OrderRestController.class)
+@Import(TestConfig.class)
+class OrderRestControllerTest {
+
+    @Autowired
+    MockMvc mockMvc;
+
+    @MockBean
+    OrderService orderService;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @DisplayName("주문 생성")
+    @Nested
+    class CreateOrder {
+
+        @DisplayName("주문 생성 실패하면 400 Bad Request를 응답한다.")
+        @Test
+        void if_failed_then_responds_400_bad_request() throws Exception {
+            // given
+            var request = new HashMap<String, Object>() {{
+                put("orderTableId", UUID.randomUUID());
+                put("orderLineItems", List.of(new HashMap<String, Object>() {{
+                    put("menuId", UUID.randomUUID());
+                    put("quantity", 0);
+                }}));
+            }};
+            var content = objectMapper.writeValueAsString(request);
+            given(orderService.create(any())).willThrow(new IllegalArgumentException());
+
+            // when
+            mockMvc.perform(
+                            post("/api/orders")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isBadRequest());
+        }
+
+        @DisplayName("주문 생성 성공하면 201 Created를 응답한다.")
+        @Test
+        void if_succeed_then_responds_201_created() throws Exception {
+            // given
+            var request = new HashMap<String, Object>() {{
+                put("orderTableId", UUID.randomUUID());
+                put("orderLineItems", List.of(new HashMap<String, Object>() {{
+                    put("menuId", UUID.randomUUID());
+                    put("quantity", 1);
+                }}));
+            }};
+            var content = objectMapper.writeValueAsString(request);
+
+            var order = FixtureProvider.createFixOrder(UUID.randomUUID(), OrderStatus.WAITING);
+            given(orderService.create(any())).willReturn(order);
+
+            // when
+            var result = mockMvc.perform(
+                            post("/api/orders")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isCreated())
+                    .andReturn();
+
+            var uri = result.getResponse().getHeader("Location");
+            assertThat(uri).isEqualTo("/api/orders/" + order.getId());
+        }
+    }
+}
