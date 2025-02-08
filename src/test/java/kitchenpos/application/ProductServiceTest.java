@@ -41,27 +41,32 @@ class ProductServiceTest {
     @Mock
     private PurgomalumClient purgomalumClient;
 
-    @DisplayName("상품 목록을 조회한다.")
-    @Test
-    void find_all_products() {
-        // given
-        var product = new Product();
-        product.setId(UUID.randomUUID());
-        product.setName("상품");
-        product.setPrice(BigDecimal.TEN);
-        given(productRepository.findAll())
-                .willReturn(List.of(product));
+    @DisplayName("상품 목록 조회")
+    @Nested
+    class ListProducts {
 
-        // when
-        var products = productService.findAll();
+        @DisplayName("상품 목록을 조회한다.")
+        @Test
+        void if_success_then_return_products() {
+            // given
+            var product = new Product();
+            product.setId(UUID.randomUUID());
+            product.setName("상품");
+            product.setPrice(BigDecimal.TEN);
+            given(productRepository.findAll())
+                    .willReturn(List.of(product));
 
-        // then
-        assertThat(products).isNotNull();
-        Assertions.assertAll(
-                () -> assertThat(products).hasSize(1),
-                () -> assertThat(products.getFirst().getName()).isEqualTo("상품"),
-                () -> assertThat(products.getFirst().getPrice()).isEqualTo(BigDecimal.TEN)
-        );
+            // when
+            var products = productService.findAll();
+
+            // then
+            assertThat(products).isNotNull();
+            Assertions.assertAll(
+                    () -> assertThat(products).hasSize(1),
+                    () -> assertThat(products.getFirst().getName()).isEqualTo("상품"),
+                    () -> assertThat(products.getFirst().getPrice()).isEqualTo(BigDecimal.TEN)
+            );
+        }
     }
 
     @DisplayName("상품을 생성한다.")
