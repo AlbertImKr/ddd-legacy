@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -86,6 +87,12 @@ class OrderServiceTest {
         return orderLineItem;
     }
 
+    private static @NotNull OrderLineItem createFixOrderLineItem(long quantity, long price, Menu menu) {
+        var orderLineItem = createFixOrderLineItem(quantity, menu.getId(), price);
+        orderLineItem.setMenu(menu);
+        return orderLineItem;
+    }
+
     private static @NotNull Order createFixOrder(OrderType orderType) {
         var request = new Order();
         request.setType(orderType);
@@ -105,6 +112,29 @@ class OrderServiceTest {
         request.setDeliveryAddress(deliveryAddress);
         request.setOrderLineItems(orderLineItem);
         return request;
+    }
+
+    private static @NotNull Order creatFixOrder(UUID orderId, OrderStatus orderStatus) {
+        var order = new Order();
+        order.setId(orderId);
+        order.setStatus(orderStatus);
+        return order;
+    }
+
+    private static @NotNull Order createFixOrder(
+            UUID orderId,
+            OrderStatus orderStatus,
+            OrderType orderType,
+            String deliveryAddress,
+            List<OrderLineItem> orderLineItems
+    ) {
+        var order = new Order();
+        order.setId(orderId);
+        order.setStatus(orderStatus);
+        order.setType(orderType);
+        order.setDeliveryAddress(deliveryAddress);
+        order.setOrderLineItems(orderLineItems);
+        return order;
     }
 
     @DisplayName("배달")
@@ -294,7 +324,82 @@ class OrderServiceTest {
                 );
             }
         }
+
+        @DisplayName("주문 접수")
+        @Nested
+        class Accept {
+
+            @DisplayName("주문 아이디가 null인 경우 예외를 던진다.")
+            @Test
+            void if_order_id_is_null_then_throw_exception() {
+                // given
+                UUID orderId = null;
+
+                // when, then
+                assertThatThrownBy(() -> orderService.accept(orderId))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문이 존재하지 않는 경우 예외를 던진다.")
+            @Test
+            void if_order_does_not_exist_then_throw_exception() {
+                // given
+                var orderId = UUID.randomUUID();
+
+                given(orderRepository.findById(orderId))
+                        .willReturn(Optional.empty());
+
+                // when, then
+                assertThatThrownBy(() -> orderService.accept(orderId))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문 상태가 대기 상태가 아닌 경우 예외를 던진다.")
+            @Test
+            void if_order_status_is_not_waiting_then_throw_exception() {
+                // given
+                var orderId = UUID.randomUUID();
+
+                var order = creatFixOrder(orderId, OrderStatus.ACCEPTED);
+
+                given(orderRepository.findById(order.getId()))
+                        .willReturn(Optional.of(order));
+
+                // when, then
+                assertThatThrownBy(() -> orderService.accept(orderId))
+                        .isInstanceOf(IllegalStateException.class);
+            }
+
+            @DisplayName("주문 접수 성공하면 주문 상태를 접수로 변경되고 배달 업체에 배달 요청을 한다.")
+            @Test
+            void if_success_then_change_order_status_to_accepted_and_request_delivery() {
+                // given
+                long price = 1000L;
+                var menu = createFixMenu(UUID.randomUUID(), true, price);
+
+                var orderLineItem = createFixOrderLineItem(1L, price, menu);
+
+                var orderId = UUID.randomUUID();
+                var deliveryAddress = "서울시 강남구";
+                var order = createFixOrder(
+                        orderId,
+                        OrderStatus.WAITING,
+                        OrderType.DELIVERY,
+                        deliveryAddress,
+                        List.of(orderLineItem)
+                );
+
+                given(orderRepository.findById(order.getId()))
+                        .willReturn(Optional.of(order));
+
+                // when
+                var acceptedOrder = orderService.accept(orderId);
+
+                // then
+                assertThat(acceptedOrder).isNotNull();
+                assertThat(acceptedOrder.getStatus()).isEqualTo(OrderStatus.ACCEPTED);
+                verify(kitchenridersClient).requestDelivery(orderId, BigDecimal.valueOf(price), deliveryAddress);
+            }
+        }
     }
-
-
 }
