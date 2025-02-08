@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.UUID;
 import kitchenpos.domain.OrderRepository;
 import kitchenpos.domain.OrderTable;
 import kitchenpos.domain.OrderTableRepository;
@@ -69,6 +72,44 @@ class OrderTableServiceTest {
                     () -> assertThat(orderTable.getNumberOfGuests()).isZero(),
                     () -> assertThat(orderTable.isOccupied()).isFalse()
             );
+        }
+    }
+
+    @DisplayName("주문 테일블 사용")
+    @Nested
+    class SitOrderTable {
+
+        @DisplayName("주문 테이블이 존재하지 않는 경우 예외를 던진다.")
+        @Test
+        void if_order_table_does_not_exist_then_throw_exception() {
+            // given
+            var orderTableId = UUID.randomUUID();
+
+            given(orderTableRepository.findById(orderTableId))
+                    .willReturn(Optional.empty());
+
+            // when then
+            assertThatThrownBy(() -> orderTableService.sit(orderTableId))
+                    .isInstanceOf(NoSuchElementException.class);
+        }
+
+        @DisplayName("주문 테이블을 사용하면 주문 테이블을 반환한다.")
+        @Test
+        void sit_order_table() {
+            // given
+            var orderTableId = UUID.randomUUID();
+            var orderTable = new OrderTable();
+            orderTable.setId(orderTableId);
+
+            given(orderTableRepository.findById(orderTableId))
+                    .willReturn(Optional.of(orderTable));
+
+            // when
+            var result = orderTableService.sit(orderTableId);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.isOccupied()).isTrue();
         }
     }
 }
