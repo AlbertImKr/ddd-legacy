@@ -134,7 +134,7 @@ class ProductServiceTest {
 
         @DisplayName("상품을 성공하면 저장된 상품을 반환한다.")
         @Test
-        void create_product_success_then_return_saved_product() {
+        void if_success_then_return_saved_product() {
             // given
             var request = new Product();
             request.setPrice(BigDecimal.TEN);
