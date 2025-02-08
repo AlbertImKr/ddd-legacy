@@ -675,5 +675,29 @@ class MenuServiceTest {
             assertThat(hiddenMenu.isDisplayed()).isFalse();
         }
     }
+
+    @DisplayName("메뉴 목록 조회")
+    @Nested
+    class MenuFindAll {
+
+        @DisplayName("메뉴가 있으면 메뉴 목록을 반환한다.")
+        @Test
+        void if_menu_exists_then_return_menu_list() {
+            // given
+            var menu1 = new Menu();
+            menu1.setId(UUID.randomUUID());
+            var menu2 = new Menu();
+            menu2.setId(UUID.randomUUID());
+
+            given(menuRepository.findAll())
+                    .willReturn(List.of(menu1, menu2));
+
+            // when
+            var menus = menuService.findAll();
+
+            // then
+            assertThat(menus).hasSize(2);
+        }
+    }
 }
 
