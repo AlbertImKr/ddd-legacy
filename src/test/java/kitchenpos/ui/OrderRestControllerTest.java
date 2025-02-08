@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -94,6 +95,45 @@ class OrderRestControllerTest {
 
             var uri = result.getResponse().getHeader("Location");
             assertThat(uri).isEqualTo("/api/orders/" + order.getId());
+        }
+    }
+
+    @DisplayName("주문 접수")
+    @Nested
+    class AcceptOrder {
+
+        @DisplayName("주문 접수 실패하면 400 Bad Request를 응답한다.")
+        @Test
+        void if_failed_then_responds_400_bad_request() throws Exception {
+            // given
+            var orderId = UUID.randomUUID();
+            var content = objectMapper.writeValueAsString(new HashMap<>());
+            given(orderService.accept(any())).willThrow(new IllegalArgumentException());
+
+            // when
+            mockMvc.perform(
+                            put("/api/orders/{orderId}/accept", orderId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isBadRequest());
+        }
+
+        @DisplayName("주문 접수 성공하면 200 OK를 응답한다.")
+        @Test
+        void if_succeed_then_responds_200_ok() throws Exception {
+            // given
+            var orderId = UUID.randomUUID();
+            var content = objectMapper.writeValueAsString(new HashMap<>());
+            given(orderService.accept(any())).willReturn(FixtureProvider.createFixOrder(orderId, OrderStatus.ACCEPTED));
+
+            // when
+            mockMvc.perform(
+                            put("/api/orders/{orderId}/accept", orderId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isOk());
         }
     }
 }
