@@ -1,5 +1,8 @@
 package kitchenpos.application;
 
+import static kitchenpos.util.FixtureProvider.createFixMenu;
+import static kitchenpos.util.FixtureProvider.createFixOrder;
+import static kitchenpos.util.FixtureProvider.createFixOrderLineItem;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,7 +25,6 @@ import kitchenpos.domain.OrderTable;
 import kitchenpos.domain.OrderTableRepository;
 import kitchenpos.domain.OrderType;
 import kitchenpos.infra.KitchenridersClient;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -52,127 +54,6 @@ class OrderServiceTest {
 
     @Mock
     KitchenridersClient kitchenridersClient;
-
-    private static @NotNull Menu createFixMenu(UUID id) {
-        var menu = new Menu();
-        menu.setId(id);
-        return menu;
-    }
-
-    private static @NotNull Menu createFixMenu(UUID id, boolean displayed) {
-        var menu = createFixMenu(id);
-        menu.setDisplayed(displayed);
-        return menu;
-    }
-
-    private static @NotNull Menu createFixMenu(UUID id, boolean displayed, long price) {
-        Menu menu = createFixMenu(id, displayed);
-        menu.setPrice(BigDecimal.valueOf(price));
-        return menu;
-    }
-
-    private static @NotNull OrderLineItem createFixOrderLineItem(long quantity) {
-        var orderLineItem = new OrderLineItem();
-        orderLineItem.setQuantity(quantity);
-        return orderLineItem;
-    }
-
-    private static @NotNull OrderLineItem createFixOrderLineItem(long quantity, UUID id) {
-        var orderLineItem = createFixOrderLineItem(quantity);
-        orderLineItem.setMenuId(id);
-        return orderLineItem;
-    }
-
-    private static @NotNull OrderLineItem createFixOrderLineItem(long quantity, UUID id, long price) {
-        OrderLineItem orderLineItem = createFixOrderLineItem(quantity, id);
-        orderLineItem.setPrice(BigDecimal.valueOf(price));
-        return orderLineItem;
-    }
-
-    private static @NotNull OrderLineItem createFixOrderLineItem(long quantity, long price, Menu menu) {
-        var orderLineItem = createFixOrderLineItem(quantity, menu.getId(), price);
-        orderLineItem.setMenu(menu);
-        return orderLineItem;
-    }
-
-    private static @NotNull Order createFixOrder(OrderType orderType) {
-        var request = new Order();
-        request.setType(orderType);
-        return request;
-    }
-
-    private static @NotNull Order createFixOrder(OrderType orderType, List<OrderLineItem> orderLineItems) {
-        var request = createFixOrder(orderType);
-        request.setOrderLineItems(orderLineItems);
-        return request;
-    }
-
-    private static @NotNull Order createFixOrder(
-            OrderType orderType, List<OrderLineItem> orderLineItem, String deliveryAddress
-    ) {
-        var request = createFixOrder(orderType);
-        request.setDeliveryAddress(deliveryAddress);
-        request.setOrderLineItems(orderLineItem);
-        return request;
-    }
-
-    private static @NotNull Order createFixOrder(
-            UUID orderId,
-            OrderStatus orderStatus,
-            OrderType orderType,
-            OrderTable orderTable
-    ) {
-        var order = new Order();
-        order.setId(orderId);
-        order.setStatus(orderStatus);
-        order.setType(orderType);
-        order.setOrderTable(orderTable);
-        return order;
-    }
-
-    private static @NotNull Order createFixOrder(UUID orderId, OrderStatus orderStatus) {
-        var order = new Order();
-        order.setId(orderId);
-        order.setStatus(orderStatus);
-        return order;
-    }
-
-    private static @NotNull Order createFixOrder(
-            UUID orderId,
-            OrderStatus orderStatus,
-            OrderType orderType
-    ) {
-        var order = createFixOrder(orderId, orderStatus);
-        order.setType(orderType);
-        return order;
-    }
-
-    private static @NotNull Order createFixOrder(
-            UUID orderId,
-            OrderStatus orderStatus,
-            OrderType orderType,
-            String deliveryAddress,
-            List<OrderLineItem> orderLineItems
-    ) {
-        var order = new Order();
-        order.setId(orderId);
-        order.setStatus(orderStatus);
-        order.setType(orderType);
-        order.setDeliveryAddress(deliveryAddress);
-        order.setOrderLineItems(orderLineItems);
-        return order;
-    }
-
-    private static @NotNull Order createFixOrder(
-            OrderType orderType,
-            UUID orderTableId,
-            List<OrderLineItem> orderLineItems
-    ) {
-        var request = createFixOrder(orderType);
-        request.setOrderTableId(orderTableId);
-        request.setOrderLineItems(orderLineItems);
-        return request;
-    }
 
     @DisplayName("배달")
     @Nested
@@ -551,7 +432,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = OrderServiceTest.createFixOrder(
+                var order = createFixOrder(
                         orderId, orderStatus, OrderType.DELIVERY, "서울시 강남구", List.of());
 
                 given(orderRepository.findById(orderId))
@@ -615,7 +496,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = OrderServiceTest.createFixOrder(
+                var order = createFixOrder(
                         orderId, orderStatus, OrderType.DELIVERY, "서울시 강남구", List.of());
 
                 given(orderRepository.findById(orderId))
@@ -679,7 +560,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = OrderServiceTest.createFixOrder(
+                var order = createFixOrder(
                         orderId, orderStatus, OrderType.DELIVERY, "서울시 강남구", List.of());
 
                 given(orderRepository.findById(orderId))
