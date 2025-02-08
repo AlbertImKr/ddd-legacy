@@ -132,4 +132,43 @@ class OrderTableRestControllerTest {
             assertThat(response.getId()).isEqualTo(orderTableId);
         }
     }
+
+    @DisplayName("주문 테이블 비우기")
+    @Nested
+    class ClearOrderTable {
+
+        @DisplayName("주문 테이블이 존재하지 않는 경우 예외를 던진다.")
+        @Test
+        void if_order_table_does_not_exist_then_throw_exception() throws Exception {
+            // given
+            var orderTableId = UUID.randomUUID();
+
+            given(orderTableService.clear(orderTableId)).willThrow(new NoSuchElementException());
+
+            // when then
+            mockMvc.perform(put("/api/order-tables/{orderTableId}/clear", orderTableId))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @DisplayName("주문 테이블을 비우면 주문 테이블을 반환한다.")
+        @Test
+        void if_succeed_then_return_order_table() throws Exception {
+            // given
+            var orderTableId = UUID.randomUUID();
+            var orderTable = new OrderTable();
+            orderTable.setId(orderTableId);
+
+            given(orderTableService.clear(orderTableId)).willReturn(orderTable);
+
+            // when
+            var result = mockMvc.perform(put("/api/order-tables/{orderTableId}/clear", orderTableId))
+                    // then
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            var response = objectMapper.readValue(result.getResponse().getContentAsString(), OrderTable.class);
+            assertThat(response).isNotNull();
+            assertThat(response.getId()).isEqualTo(orderTableId);
+        }
+    }
 }
