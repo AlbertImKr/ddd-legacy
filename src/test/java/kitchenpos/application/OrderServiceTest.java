@@ -1403,4 +1403,37 @@ class OrderServiceTest {
             }
         }
     }
+
+    @DisplayName("주문 목록 조회")
+    @Nested
+    class ListOrders {
+
+        @DisplayName("주문 목록이 존재하지 않는 경우 빈 목록을 반환한다.")
+        @Test
+        void if_orders_do_not_exist_then_return_empty_list() {
+            // given
+            given(orderRepository.findAll()).willReturn(List.of());
+
+            // when
+            var orders = orderService.findAll();
+
+            // then
+            assertThat(orders).isEmpty();
+        }
+
+        @DisplayName("주문 목록이 존재하는 경우 주문 목록을 반환한다.")
+        @Test
+        void if_orders_exist_then_return_order_list() {
+            // given
+            var order = createFixOrder(UUID.randomUUID(), OrderStatus.WAITING, OrderType.DELIVERY);
+
+            given(orderRepository.findAll()).willReturn(List.of(order));
+
+            // when
+            var orders = orderService.findAll();
+
+            // then
+            assertThat(orders).hasSize(1);
+        }
+    }
 }
