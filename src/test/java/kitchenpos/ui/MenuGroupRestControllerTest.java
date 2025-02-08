@@ -19,6 +19,7 @@ import kitchenpos.config.TestConfig;
 import kitchenpos.domain.MenuGroup;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,79 +44,90 @@ class MenuGroupRestControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @DisplayName("메뉴 그룹이 생성에 실패하면 400 Bad Request를 응답한다.")
-    @Test
-    void create_menu_group_if_failed_then_responds_400_bad_request() throws Exception {
-        // given
-        var name = "";
-        var body = new HashMap<String, Object>() {{
-            put("name", name);
-        }};
-        var content = objectMapper.writeValueAsString(body);
-        given(menuGroupService.create(any())).willThrow(new IllegalArgumentException());
+    @DisplayName("메뉴 그룹 생성")
+    @Nested
+    class CreateMenuGroup {
 
-        // when
-        mockMvc.perform(
-                        post("/api/menu-groups")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(content))
-                // then
-                .andExpect(status().isBadRequest());
+
+        @DisplayName("메뉴 그룹이 생성에 실패하면 400 Bad Request를 응답한다.")
+        @Test
+        void create_menu_group_if_failed_then_responds_400_bad_request() throws Exception {
+            // given
+            var name = "";
+            var body = new HashMap<String, Object>() {{
+                put("name", name);
+            }};
+            var content = objectMapper.writeValueAsString(body);
+            given(menuGroupService.create(any())).willThrow(new IllegalArgumentException());
+
+            // when
+            mockMvc.perform(
+                            post("/api/menu-groups")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isBadRequest());
+        }
+
+
+        @DisplayName("메뉴 그룹이 생성에 성공하면 201 Created를 응답한다.")
+        @Test
+        void create_menu_group_if_succeeds_then_responds_201_created() throws Exception {
+            // given
+            var menuGroup = new MenuGroup();
+            var name = "치킨";
+            var body = new HashMap<String, Object>() {{
+                put("name", name);
+            }};
+            var content = objectMapper.writeValueAsString(body);
+            given(menuGroupService.create(any())).willReturn(menuGroup);
+
+            // when
+            mockMvc.perform(
+                            post("/api/menu-groups")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isCreated());
+        }
     }
 
+    @DisplayName("메뉴 그룹 목록 조회")
+    @Nested
+    class ListMenuGroups {
 
-    @DisplayName("메뉴 그룹이 생성에 성공하면 201 Created를 응답한다.")
-    @Test
-    void create_menu_group_if_succeeds_then_responds_201_created() throws Exception {
-        // given
-        var menuGroup = new MenuGroup();
-        var name = "치킨";
-        var body = new HashMap<String, Object>() {{
-            put("name", name);
-        }};
-        var content = objectMapper.writeValueAsString(body);
-        given(menuGroupService.create(any())).willReturn(menuGroup);
+        @DisplayName("메뉴 그룹 목록을 조회 성공하면 200 OK를 응답한다.")
+        @Test
+        void find_all_menu_groups_if_succeeds_then_responds_200_ok() throws Exception {
+            // given
+            var menuGroup1 = new MenuGroup();
+            menuGroup1.setId(UUID.randomUUID());
+            menuGroup1.setName("치킨");
 
-        // when
-        mockMvc.perform(
-                        post("/api/menu-groups")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(content))
-                // then
-                .andExpect(status().isCreated());
-    }
+            var menuGroup2 = new MenuGroup();
+            menuGroup2.setId(UUID.randomUUID());
+            menuGroup2.setName("사이드 메뉴");
 
-    @DisplayName("메뉴 그룹 목록을 조회 성공하면 200 OK를 응답한다.")
-    @Test
-    void find_all_menu_groups_if_succeeds_then_responds_200_ok() throws Exception {
-        // given
-        var menuGroup1 = new MenuGroup();
-        menuGroup1.setId(UUID.randomUUID());
-        menuGroup1.setName("치킨");
+            given(menuGroupService.findAll())
+                    .willReturn(List.of(menuGroup1, menuGroup2));
 
-        var menuGroup2 = new MenuGroup();
-        menuGroup2.setId(UUID.randomUUID());
-        menuGroup2.setName("사이드 메뉴");
+            // when
+            var result = mockMvc.perform(get("/api/menu-groups"))
+                    .andExpect(status().isOk())
+                    .andReturn();
 
-        given(menuGroupService.findAll())
-                .willReturn(List.of(menuGroup1, menuGroup2));
-
-        // when
-        var result = mockMvc.perform(get("/api/menu-groups"))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        // then
-        var responseContent = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        List<Map<String, String>> menuGroups = objectMapper.readValue(
-                responseContent,
-                new TypeReference<>() {
-                }
-        );
-        Assertions.assertAll(
-                () -> assertThat(menuGroups).hasSize(2),
-                () -> assertThat(menuGroups).extracting("name")
-                        .containsExactly("치킨", "사이드 메뉴")
-        );
+            // then
+            var responseContent = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+            List<Map<String, String>> menuGroups = objectMapper.readValue(
+                    responseContent,
+                    new TypeReference<>() {
+                    }
+            );
+            Assertions.assertAll(
+                    () -> assertThat(menuGroups).hasSize(2),
+                    () -> assertThat(menuGroups).extracting("name")
+                            .containsExactly("치킨", "사이드 메뉴")
+            );
+        }
     }
 }
