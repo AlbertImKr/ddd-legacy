@@ -369,7 +369,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = createFixOrder(orderId, orderStatus);
+                var order = createFixOrder(orderId, orderStatus, OrderType.DELIVERY, "서울시 강남구", List.of());
 
                 given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
@@ -444,7 +444,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = createFixOrder(orderId, orderStatus);
+                var order = createFixOrder(orderId, orderStatus, OrderType.DELIVERY, "서울시 강남구", List.of());
 
                 given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
@@ -460,7 +460,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = createFixOrder(orderId, OrderStatus.ACCEPTED);
+                var order = createFixOrder(orderId, OrderStatus.ACCEPTED, OrderType.DELIVERY, "서울시 강남구", List.of());
 
                 given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
@@ -507,7 +507,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = createFixOrder(orderId, OrderStatus.SERVED);
+                var order = createFixOrder(orderId, OrderStatus.SERVED, orderType);
                 order.setType(orderType);
 
                 given(orderRepository.findById(orderId))
@@ -882,7 +882,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = createFixOrder(orderId, orderStatus);
+                var order = createFixOrder(orderId, orderStatus, OrderType.TAKEOUT);
 
                 given(orderRepository.findById(order.getId()))
                         .willReturn(Optional.of(order));
@@ -898,7 +898,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = createFixOrder(orderId, OrderStatus.WAITING);
+                var order = createFixOrder(orderId, OrderStatus.WAITING, OrderType.TAKEOUT);
 
                 given(orderRepository.findById(order.getId()))
                         .willReturn(Optional.of(order));
@@ -945,7 +945,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = createFixOrder(orderId, orderStatus);
+                var order = createFixOrder(orderId, orderStatus, OrderType.TAKEOUT);
 
                 given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
@@ -961,7 +961,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = createFixOrder(orderId, OrderStatus.ACCEPTED);
+                var order = createFixOrder(orderId, OrderStatus.ACCEPTED, OrderType.TAKEOUT);
 
                 given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
@@ -1024,7 +1024,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = createFixOrder(orderId, OrderStatus.SERVED);
+                var order = createFixOrder(orderId, OrderStatus.SERVED, OrderType.TAKEOUT);
 
                 given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
