@@ -115,7 +115,7 @@ class OrderServiceTest {
         return request;
     }
 
-    private static @NotNull Order creatFixOrder(UUID orderId, OrderStatus orderStatus) {
+    private static @NotNull Order createFixOrder(UUID orderId, OrderStatus orderStatus) {
         var order = new Order();
         order.setId(orderId);
         order.setStatus(orderStatus);
@@ -359,7 +359,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = creatFixOrder(orderId, orderStatus);
+                var order = createFixOrder(orderId, orderStatus);
 
                 given(orderRepository.findById(order.getId()))
                         .willReturn(Optional.of(order));
@@ -434,7 +434,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = creatFixOrder(orderId, orderStatus);
+                var order = createFixOrder(orderId, orderStatus);
 
                 given(orderRepository.findById(order.getId()))
                         .willReturn(Optional.of(order));
@@ -450,7 +450,7 @@ class OrderServiceTest {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = creatFixOrder(orderId, OrderStatus.ACCEPTED);
+                var order = createFixOrder(orderId, OrderStatus.ACCEPTED);
 
                 given(orderRepository.findById(order.getId()))
                         .willReturn(Optional.of(order));
@@ -461,6 +461,88 @@ class OrderServiceTest {
                 // then
                 assertThat(servedOrder).isNotNull();
                 assertThat(servedOrder.getStatus()).isEqualTo(OrderStatus.SERVED);
+            }
+        }
+
+        @DisplayName("주문 배달 시작")
+        @Nested
+        class StartDelivery {
+
+            @DisplayName("주문 아이디가 null인 경우 예외를 던진다.")
+            @Test
+            void if_order_id_is_null_then_throw_exception() {
+                // when, then
+                assertThatThrownBy(() -> orderService.startDelivery(null))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문이 존재하지 않는 경우 예외를 던진다.")
+            @Test
+            void if_order_does_not_exist_then_throw_exception() {
+                // given
+                var orderId = UUID.randomUUID();
+
+                given(orderRepository.findById(orderId))
+                        .willReturn(Optional.empty());
+
+                // when, then
+                assertThatThrownBy(() -> orderService.startDelivery(orderId))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문 타입이 배달이 아닌 경우 예외를 던진다.")
+            @ParameterizedTest
+            @ValueSource(strings = {"TAKEOUT", "EAT_IN"})
+            void if_order_type_is_not_delivery_then_throw_exception(OrderType orderType) {
+                // given
+                var orderId = UUID.randomUUID();
+
+                var order = createFixOrder(orderId, OrderStatus.SERVED);
+                order.setType(orderType);
+
+                given(orderRepository.findById(order.getId()))
+                        .willReturn(Optional.of(order));
+
+                // when, then
+                assertThatThrownBy(() -> orderService.startDelivery(orderId))
+                        .isInstanceOf(IllegalStateException.class);
+            }
+
+            @DisplayName("주문 상태가 서빙 상태가 아닌 경우 예외를 던진다.")
+            @ParameterizedTest
+            @ValueSource(strings = {"WAITING", "ACCEPTED", "DELIVERING", "DELIVERED", "COMPLETED"})
+            void if_order_status_is_not_served_then_throw_exception(OrderStatus orderStatus) {
+                // given
+                var orderId = UUID.randomUUID();
+
+                var order = OrderServiceTest.createFixOrder(
+                        orderId, orderStatus, OrderType.DELIVERY, "서울시 강남구", List.of());
+
+                given(orderRepository.findById(order.getId()))
+                        .willReturn(Optional.of(order));
+
+                // when, then
+                assertThatThrownBy(() -> orderService.startDelivery(orderId))
+                        .isInstanceOf(IllegalStateException.class);
+            }
+
+            @DisplayName("주문 배달 시작 성공하면 주문 상태를 배달 중으로 변경한다.")
+            @Test
+            void if_success_then_change_order_status_to_delivering() {
+                // given
+                var orderId = UUID.randomUUID();
+
+                var order = createFixOrder(orderId, OrderStatus.SERVED, OrderType.DELIVERY, "서울시 강남구", List.of());
+
+                given(orderRepository.findById(order.getId()))
+                        .willReturn(Optional.of(order));
+
+                // when
+                var deliveringOrder = orderService.startDelivery(orderId);
+
+                // then
+                assertThat(deliveringOrder).isNotNull();
+                assertThat(deliveringOrder.getStatus()).isEqualTo(OrderStatus.DELIVERING);
             }
         }
     }
