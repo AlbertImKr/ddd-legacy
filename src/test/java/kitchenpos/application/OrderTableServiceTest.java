@@ -176,4 +176,86 @@ class OrderTableServiceTest {
             );
         }
     }
+
+    @DisplayName("주문 테이블 인원 변경")
+    @Nested
+    class ChangeNumberOfGuests {
+
+        @DisplayName("인원이 음수인 경우 예외를 던진다.")
+        @Test
+        void if_number_of_guests_is_negative_then_throw_exception() {
+            // given
+            var orderTableId = UUID.randomUUID();
+
+            var request = new OrderTable();
+            request.setNumberOfGuests(-1);
+
+            // when then
+            assertThatThrownBy(() -> orderTableService.changeNumberOfGuests(orderTableId, request))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @DisplayName("주문 테이블이 존재하지 않는 경우 예외를 던진다.")
+        @Test
+        void if_order_table_does_not_exist_then_throw_exception() {
+            // given
+            var orderTableId = UUID.randomUUID();
+            var orderTable = new OrderTable();
+            orderTable.setId(orderTableId);
+
+            given(orderTableRepository.findById(orderTableId))
+                    .willReturn(Optional.empty());
+
+            var request = new OrderTable();
+            request.setNumberOfGuests(2);
+
+            // when then
+            assertThatThrownBy(() -> orderTableService.changeNumberOfGuests(orderTableId, request))
+                    .isInstanceOf(NoSuchElementException.class);
+        }
+
+        @DisplayName("주문 테이블이 비어있는 경우 예외를 던진다.")
+        @Test
+        void if_order_table_is_empty_then_throw_exception() {
+            // given
+            var orderTableId = UUID.randomUUID();
+            var orderTable = new OrderTable();
+            orderTable.setId(orderTableId);
+            orderTable.setOccupied(false);
+
+            given(orderTableRepository.findById(orderTableId))
+                    .willReturn(Optional.of(orderTable));
+
+            var request = new OrderTable();
+            request.setNumberOfGuests(2);
+
+            // when then
+            assertThatThrownBy(() -> orderTableService.changeNumberOfGuests(orderTableId, request))
+                    .isInstanceOf(IllegalStateException.class);
+        }
+
+        @DisplayName("주문 테이블 인원 변경 성공하면 주문 테이블을 반환한다.")
+        @Test
+        void if_succeed_then_return_order_table() {
+            // given
+            var orderTableId = UUID.randomUUID();
+            var orderTable = new OrderTable();
+            orderTable.setId(orderTableId);
+            orderTable.setNumberOfGuests(2);
+            orderTable.setOccupied(true);
+
+            given(orderTableRepository.findById(orderTableId))
+                    .willReturn(Optional.of(orderTable));
+
+            var request = new OrderTable();
+            request.setNumberOfGuests(4);
+
+            // when
+            var result = orderTableService.changeNumberOfGuests(orderTableId, request);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getNumberOfGuests()).isEqualTo(4);
+        }
+    }
 }
