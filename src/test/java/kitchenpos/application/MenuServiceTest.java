@@ -437,5 +437,126 @@ class MenuServiceTest {
             );
         }
     }
+
+    @DisplayName("메뉴의 가격을 변경한다.")
+    @Nested
+    class MenuChangePrice {
+
+        @DisplayName("메뉴의 가격이 null이면 예외를 던진다.")
+        @Test
+        void if_price_is_null_then_throw_exception() {
+            // given
+            var menuId = UUID.randomUUID();
+            var request = new Menu();
+            request.setPrice(null);
+
+            // when
+            assertThatThrownBy(() -> menuService.changePrice(menuId, request))
+                    // then
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @DisplayName("메뉴의 가격이 음수이면 예외를 던진다.")
+        @Test
+        void if_price_is_negative_then_throw_exception() {
+            // given
+            var menuId = UUID.randomUUID();
+            var request = new Menu();
+            request.setPrice(BigDecimal.valueOf(-1));
+
+            // when
+            assertThatThrownBy(() -> menuService.changePrice(menuId, request))
+                    // then
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @DisplayName("메뉴가 존재하지 않으면 예외를 던진다.")
+        @Test
+        void if_menu_does_not_exist_then_throw_exception() {
+            // given
+            var menuId = UUID.randomUUID();
+            var request = new Menu();
+            request.setPrice(BigDecimal.valueOf(1));
+
+            given(menuRepository.findById(menuId))
+                    .willReturn(Optional.empty());
+
+            // when
+            assertThatThrownBy(() -> menuService.changePrice(menuId, request))
+                    // then
+                    .isInstanceOf(NoSuchElementException.class);
+        }
+
+        @DisplayName("메뉴의 가격이 상품의 가격과 개수의 곱의 합보다 크면 예외를 던진다.")
+        @ParameterizedTest
+        @CsvSource(value = {"3,1,1,1,1", "11,1,2,2,4"})
+        void if_price_is_greater_than_sum_of_product_price_and_quantity_then_throw_exception(
+                int menuPrice, int product1Price, int product1Quantity, int product2Price, int product2Quantity
+        ) {
+            // given
+            var menuId = UUID.randomUUID();
+            var request = new Menu();
+            request.setPrice(BigDecimal.valueOf(menuPrice));
+
+            var product1 = new Product();
+            product1.setPrice(BigDecimal.valueOf(product1Price));
+
+            var product2 = new Product();
+            product2.setPrice(BigDecimal.valueOf(product2Price));
+
+            var menuProduct1 = new MenuProduct();
+            menuProduct1.setProduct(product1);
+            menuProduct1.setQuantity(product1Quantity);
+
+            var menuProduct2 = new MenuProduct();
+            menuProduct2.setProduct(product2);
+            menuProduct2.setQuantity(product2Quantity);
+
+            var menu = new Menu();
+            menu.setId(menuId);
+            menu.setPrice(BigDecimal.valueOf(1));
+            menu.setMenuProducts(List.of(menuProduct1, menuProduct2));
+
+            given(menuRepository.findById(menuId))
+                    .willReturn(Optional.of(menu));
+
+            // when
+            assertThatThrownBy(() -> menuService.changePrice(menuId, request))
+                    // then
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @DisplayName("메뉴의 가격을 변경이 성공하면 메뉴를 반환한다.")
+        @Test
+        void if_menu_change_price_is_successful_then_return_menu() {
+            // given
+            var menuId = UUID.randomUUID();
+            var request = new Menu();
+            request.setPrice(BigDecimal.valueOf(0));
+
+            var product = new Product();
+            product.setPrice(BigDecimal.valueOf(1));
+
+            var menuProduct = new MenuProduct();
+            menuProduct.setQuantity(1);
+            menuProduct.setProduct(new Product());
+            menuProduct.setProduct(product);
+
+            var menu = new Menu();
+            menu.setId(menuId);
+            menu.setPrice(BigDecimal.valueOf(2));
+            menu.setMenuProducts(List.of(menuProduct));
+
+            given(menuRepository.findById(menuId))
+                    .willReturn(Optional.of(menu));
+
+            // when
+            var changedMenu = menuService.changePrice(menuId, request);
+
+            // then
+            assertThat(changedMenu).isNotNull();
+            assertThat(changedMenu.getPrice()).isEqualTo(request.getPrice());
+        }
+    }
 }
 
