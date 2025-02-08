@@ -136,4 +136,43 @@ class OrderRestControllerTest {
                     .andExpect(status().isOk());
         }
     }
+
+    @DisplayName("주문 서빙")
+    @Nested
+    class ServeOrder {
+
+        @DisplayName("주문 서빙 실패하면 400 Bad Request를 응답한다.")
+        @Test
+        void if_failed_then_responds_400_bad_request() throws Exception {
+            // given
+            var orderId = UUID.randomUUID();
+            var content = objectMapper.writeValueAsString(new HashMap<>());
+            given(orderService.serve(any())).willThrow(new IllegalArgumentException());
+
+            // when
+            mockMvc.perform(
+                            put("/api/orders/{orderId}/serve", orderId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isBadRequest());
+        }
+
+        @DisplayName("주문 서빙 성공하면 200 OK를 응답한다.")
+        @Test
+        void if_succeed_then_responds_200_ok() throws Exception {
+            // given
+            var orderId = UUID.randomUUID();
+            var content = objectMapper.writeValueAsString(new HashMap<>());
+            given(orderService.serve(any())).willReturn(FixtureProvider.createFixOrder(orderId, OrderStatus.SERVED));
+
+            // when
+            mockMvc.perform(
+                            put("/api/orders/{orderId}/serve", orderId)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(content))
+                    // then
+                    .andExpect(status().isOk());
+        }
+    }
 }
