@@ -53,7 +53,7 @@ class OrderTableServiceTest {
 
         @DisplayName("주문 테이블 생성 성공하면 주문 테이블을 반환한다.")
         @Test
-        void create_order_table() {
+        void if_succeed_then_return_order_table() {
             // given
             var request = new OrderTable();
             request.setName("테이블");
@@ -95,7 +95,7 @@ class OrderTableServiceTest {
 
         @DisplayName("주문 테이블을 사용하면 주문 테이블을 반환한다.")
         @Test
-        void sit_order_table() {
+        void if_succeed_then_return_order_table() {
             // given
             var orderTableId = UUID.randomUUID();
             var orderTable = new OrderTable();
