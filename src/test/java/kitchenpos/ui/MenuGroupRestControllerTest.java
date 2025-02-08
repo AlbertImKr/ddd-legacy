@@ -1,15 +1,23 @@
 package kitchenpos.ui;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import kitchenpos.application.MenuGroupService;
 import kitchenpos.config.TestConfig;
 import kitchenpos.domain.MenuGroup;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,5 +83,39 @@ class MenuGroupRestControllerTest {
                                 .content(content))
                 // then
                 .andExpect(status().isCreated());
+    }
+
+    @DisplayName("메뉴 그룹 목록을 조회 성공하면 200 OK를 응답한다.")
+    @Test
+    void find_all_menu_groups_if_succeeds_then_responds_200_ok() throws Exception {
+        // given
+        var menuGroup1 = new MenuGroup();
+        menuGroup1.setId(UUID.randomUUID());
+        menuGroup1.setName("치킨");
+
+        var menuGroup2 = new MenuGroup();
+        menuGroup2.setId(UUID.randomUUID());
+        menuGroup2.setName("사이드 메뉴");
+
+        given(menuGroupService.findAll())
+                .willReturn(List.of(menuGroup1, menuGroup2));
+
+        // when
+        var result = mockMvc.perform(get("/api/menu-groups"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // then
+        var responseContent = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        List<Map<String, String>> menuGroups = objectMapper.readValue(
+                responseContent,
+                new TypeReference<>() {
+                }
+        );
+        Assertions.assertAll(
+                () -> assertThat(menuGroups).hasSize(2),
+                () -> assertThat(menuGroups).extracting("name")
+                        .containsExactly("치킨", "사이드 메뉴")
+        );
     }
 }
