@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import kitchenpos.application.ProductService;
@@ -30,16 +32,25 @@ import org.springframework.test.web.servlet.MockMvc;
 class ProductRestControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    MockMvc mockMvc;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @MockBean
-    private ProductService productService;
+    ProductService productService;
 
     @DisplayName("상품이 생성에 실패하면 400 Bad Request를 응답한다.")
     @Test
     void create_product_if_failed_then_responds_400_bad_request() throws Exception {
         // given
-        var content = "{\"name\": \"\", \"price\": 0}";
+        var name = "";
+        var price = 0;
+        var body = new HashMap<String, Object>() {{
+            put("name", name);
+            put("price", price);
+        }};
+        var content = objectMapper.writeValueAsString(body);
         given(productService.create(any())).willThrow(new IllegalArgumentException());
 
         // when
@@ -55,7 +66,13 @@ class ProductRestControllerTest {
     @Test
     void create_product_if_succeeds_then_responds_201_created() throws Exception {
         // given
-        var content = "{\"name\": \"상품\", \"price\": 1000}";
+        var name = "상품";
+        var price = 1000;
+        var body = new HashMap<String, Object>() {{
+            put("name", name);
+            put("price", price);
+        }};
+        var content = objectMapper.writeValueAsString(body);
         var product = new Product();
         product.setId(UUID.randomUUID());
         product.setName("상품");
@@ -74,7 +91,11 @@ class ProductRestControllerTest {
     @Test
     void change_price_if_failed_then_responds_400_bad_request() throws Exception {
         // given
-        var content = "{\"price\": 0}";
+        var price = 1000;
+        var body = new HashMap<String, Object>() {{
+            put("price", price);
+        }};
+        var content = objectMapper.writeValueAsString(body);
         var productId = UUID.randomUUID();
         given(productService.changePrice(any(), any())).willThrow(new IllegalArgumentException());
 
@@ -91,7 +112,11 @@ class ProductRestControllerTest {
     @Test
     void change_price_if_succeeds_then_responds_200_ok() throws Exception {
         // given
-        var content = "{\"price\": 1000}";
+        var price = 1000;
+        var body = new HashMap<String, Object>() {{
+            put("price", price);
+        }};
+        var content = objectMapper.writeValueAsString(body);
         var product = new Product();
         var productId = UUID.randomUUID();
         product.setId(UUID.randomUUID());
