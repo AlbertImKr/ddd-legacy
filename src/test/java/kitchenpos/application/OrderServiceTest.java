@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -332,11 +333,8 @@ class OrderServiceTest {
             @DisplayName("주문 아이디가 null인 경우 예외를 던진다.")
             @Test
             void if_order_id_is_null_then_throw_exception() {
-                // given
-                UUID orderId = null;
-
                 // when, then
-                assertThatThrownBy(() -> orderService.accept(orderId))
+                assertThatThrownBy(() -> orderService.accept(null))
                         .isInstanceOf(NoSuchElementException.class);
             }
 
@@ -355,12 +353,13 @@ class OrderServiceTest {
             }
 
             @DisplayName("주문 상태가 대기 상태가 아닌 경우 예외를 던진다.")
-            @Test
-            void if_order_status_is_not_waiting_then_throw_exception() {
+            @ParameterizedTest
+            @ValueSource(strings = {"ACCEPTED", "SERVED", "DELIVERING", "DELIVERED", "COMPLETED"})
+            void if_order_status_is_not_waiting_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
 
-                var order = creatFixOrder(orderId, OrderStatus.ACCEPTED);
+                var order = creatFixOrder(orderId, orderStatus);
 
                 given(orderRepository.findById(order.getId()))
                         .willReturn(Optional.of(order));
@@ -399,6 +398,69 @@ class OrderServiceTest {
                 assertThat(acceptedOrder).isNotNull();
                 assertThat(acceptedOrder.getStatus()).isEqualTo(OrderStatus.ACCEPTED);
                 verify(kitchenridersClient).requestDelivery(orderId, BigDecimal.valueOf(price), deliveryAddress);
+            }
+        }
+
+        @DisplayName("주문 서빙")
+        @Nested
+        class Serve {
+
+            @DisplayName("주문 아이디가 null인 경우 예외를 던진다.")
+            @Test
+            void if_order_id_is_null_then_throw_exception() {
+                // when, then
+                assertThatThrownBy(() -> orderService.serve(null))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문이 존재하지 않는 경우 예외를 던진다.")
+            @Test
+            void if_order_does_not_exist_then_throw_exception() {
+                // given
+                var orderId = UUID.randomUUID();
+
+                given(orderRepository.findById(orderId))
+                        .willReturn(Optional.empty());
+
+                // when, then
+                assertThatThrownBy(() -> orderService.serve(orderId))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문 상태가 접수 상태가 아닌 경우 예외를 던진다.")
+            @ParameterizedTest
+            @ValueSource(strings = {"WAITING", "SERVED", "DELIVERING", "DELIVERED", "COMPLETED"})
+            void if_order_status_is_not_accepted_then_throw_exception(OrderStatus orderStatus) {
+                // given
+                var orderId = UUID.randomUUID();
+
+                var order = creatFixOrder(orderId, orderStatus);
+
+                given(orderRepository.findById(order.getId()))
+                        .willReturn(Optional.of(order));
+
+                // when, then
+                assertThatThrownBy(() -> orderService.serve(orderId))
+                        .isInstanceOf(IllegalStateException.class);
+            }
+
+            @DisplayName("주문 서빙 성공하면 주문 상태를 서빙으로 변경한다.")
+            @Test
+            void if_success_then_change_order_status_to_served() {
+                // given
+                var orderId = UUID.randomUUID();
+
+                var order = creatFixOrder(orderId, OrderStatus.ACCEPTED);
+
+                given(orderRepository.findById(order.getId()))
+                        .willReturn(Optional.of(order));
+
+                // when
+                var servedOrder = orderService.serve(orderId);
+
+                // then
+                assertThat(servedOrder).isNotNull();
+                assertThat(servedOrder.getStatus()).isEqualTo(OrderStatus.SERVED);
             }
         }
     }
