@@ -51,7 +51,7 @@ class MenuGroupRestControllerTest {
 
         @DisplayName("메뉴 그룹이 생성에 실패하면 400 Bad Request를 응답한다.")
         @Test
-        void create_menu_group_if_failed_then_responds_400_bad_request() throws Exception {
+        void if_failed_then_responds_400_bad_request() throws Exception {
             // given
             var name = "";
             var body = new HashMap<String, Object>() {{
@@ -72,7 +72,7 @@ class MenuGroupRestControllerTest {
 
         @DisplayName("메뉴 그룹이 생성에 성공하면 201 Created를 응답한다.")
         @Test
-        void create_menu_group_if_succeeds_then_responds_201_created() throws Exception {
+        void if_succeeds_then_responds_201_created() throws Exception {
             // given
             var menuGroup = new MenuGroup();
             var name = "치킨";
@@ -98,7 +98,7 @@ class MenuGroupRestControllerTest {
 
         @DisplayName("메뉴 그룹 목록을 조회 성공하면 200 OK를 응답한다.")
         @Test
-        void find_all_menu_groups_if_succeeds_then_responds_200_ok() throws Exception {
+        void if_succeeds_then_responds_200_ok() throws Exception {
             // given
             var menuGroup1 = new MenuGroup();
             menuGroup1.setId(UUID.randomUUID());

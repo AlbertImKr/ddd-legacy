@@ -103,7 +103,7 @@ class MenuRestControllerTest {
 
         @DisplayName("메뉴가 생성에 실패하면 400 Bad Request를 응답한다.")
         @Test
-        void create_menu_if_failed_then_responds_400_bad_request() throws Exception {
+        void if_failed_then_responds_400_bad_request() throws Exception {
             // given
             var body = new HashMap<String, Object>() {{
                 put("name", "");
@@ -129,7 +129,7 @@ class MenuRestControllerTest {
 
         @DisplayName("메뉴가 생성에 성공하면 201 Created를 응답한다.")
         @Test
-        void create_menu_if_succeeds_then_responds_201_created() throws Exception {
+        void if_succeeds_then_responds_201_created() throws Exception {
             // given
             var menu = new Menu();
             var body = new HashMap<String, Object>() {{
