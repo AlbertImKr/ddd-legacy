@@ -361,7 +361,7 @@ class OrderServiceTest {
 
                 var order = createFixOrder(orderId, orderStatus);
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when, then
@@ -388,7 +388,7 @@ class OrderServiceTest {
                         List.of(orderLineItem)
                 );
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when
@@ -436,7 +436,7 @@ class OrderServiceTest {
 
                 var order = createFixOrder(orderId, orderStatus);
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when, then
@@ -452,7 +452,7 @@ class OrderServiceTest {
 
                 var order = createFixOrder(orderId, OrderStatus.ACCEPTED);
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when
@@ -500,7 +500,7 @@ class OrderServiceTest {
                 var order = createFixOrder(orderId, OrderStatus.SERVED);
                 order.setType(orderType);
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when, then
@@ -518,7 +518,7 @@ class OrderServiceTest {
                 var order = OrderServiceTest.createFixOrder(
                         orderId, orderStatus, OrderType.DELIVERY, "서울시 강남구", List.of());
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when, then
@@ -534,7 +534,7 @@ class OrderServiceTest {
 
                 var order = createFixOrder(orderId, OrderStatus.SERVED, OrderType.DELIVERY, "서울시 강남구", List.of());
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when
@@ -582,7 +582,7 @@ class OrderServiceTest {
                 var order = OrderServiceTest.createFixOrder(
                         orderId, orderStatus, OrderType.DELIVERY, "서울시 강남구", List.of());
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when, then
@@ -598,7 +598,7 @@ class OrderServiceTest {
 
                 var order = createFixOrder(orderId, OrderStatus.DELIVERING, OrderType.DELIVERY, "서울시 강남구", List.of());
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when
@@ -646,7 +646,7 @@ class OrderServiceTest {
                 var order = OrderServiceTest.createFixOrder(
                         orderId, orderStatus, OrderType.DELIVERY, "서울시 강남구", List.of());
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when, then
@@ -662,7 +662,7 @@ class OrderServiceTest {
 
                 var order = createFixOrder(orderId, OrderStatus.DELIVERED, OrderType.DELIVERY, "서울시 강남구", List.of());
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when
@@ -937,7 +937,7 @@ class OrderServiceTest {
 
                 var order = createFixOrder(orderId, orderStatus);
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when, then
@@ -953,7 +953,7 @@ class OrderServiceTest {
 
                 var order = createFixOrder(orderId, OrderStatus.ACCEPTED);
 
-                given(orderRepository.findById(order.getId()))
+                given(orderRepository.findById(orderId))
                         .willReturn(Optional.of(order));
 
                 // when
