@@ -47,7 +47,7 @@ class ProductRestControllerTest {
 
         @DisplayName("상품 목록 조회에 성공하면 200 OK를 응답한다.")
         @Test
-        void list_products_if_succeeds_then_responds_200_ok() throws Exception {
+        void if_succeeds_then_responds_200_ok() throws Exception {
             // given
             given(productService.findAll()).willReturn(List.of());
 
@@ -65,7 +65,7 @@ class ProductRestControllerTest {
 
         @DisplayName("상품이 생성에 실패하면 400 Bad Request를 응답한다.")
         @Test
-        void create_product_if_failed_then_responds_400_bad_request() throws Exception {
+        void if_failed_then_responds_400_bad_request() throws Exception {
             // given
             var name = "";
             var price = 0;
@@ -87,7 +87,7 @@ class ProductRestControllerTest {
 
         @DisplayName("상품이 생성에 성공하면 201 Created를 응답한다.")
         @Test
-        void create_product_if_succeeds_then_responds_201_created() throws Exception {
+        void if_succeeds_then_responds_201_created() throws Exception {
             // given
             var name = "상품";
             var price = 1000;
@@ -117,7 +117,7 @@ class ProductRestControllerTest {
 
         @DisplayName("상품의 가격 변경에 실패하면 400 Bad Request를 응답한다.")
         @Test
-        void change_price_if_failed_then_responds_400_bad_request() throws Exception {
+        void if_failed_then_responds_400_bad_request() throws Exception {
             // given
             var price = 1000;
             var body = new HashMap<String, Object>() {{
@@ -138,7 +138,7 @@ class ProductRestControllerTest {
 
         @DisplayName("상품의 가격 변경에 성공하면 200 OK를 응답한다.")
         @Test
-        void change_price_if_succeeds_then_responds_200_ok() throws Exception {
+        void if_succeeds_then_responds_200_ok() throws Exception {
             // given
             var price = 1000;
             var body = new HashMap<String, Object>() {{
