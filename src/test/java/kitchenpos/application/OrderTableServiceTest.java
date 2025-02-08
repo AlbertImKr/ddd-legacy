@@ -9,6 +9,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import kitchenpos.domain.OrderRepository;
+import kitchenpos.domain.OrderStatus;
 import kitchenpos.domain.OrderTable;
 import kitchenpos.domain.OrderTableRepository;
 import org.junit.jupiter.api.Assertions;
@@ -110,6 +111,69 @@ class OrderTableServiceTest {
             // then
             assertThat(result).isNotNull();
             assertThat(result.isOccupied()).isTrue();
+        }
+    }
+
+    @DisplayName("주문 테이블 비우기")
+    @Nested
+    class ClearOrderTable {
+
+        @DisplayName("주문 테이블이 존재하지 않는 경우 예외를 던진다.")
+        @Test
+        void if_order_table_does_not_exist_then_throw_exception() {
+            // given
+            var orderTableId = UUID.randomUUID();
+
+            given(orderTableRepository.findById(orderTableId))
+                    .willReturn(Optional.empty());
+
+            // when then
+            assertThatThrownBy(() -> orderTableService.clear(orderTableId))
+                    .isInstanceOf(NoSuchElementException.class);
+        }
+
+        @DisplayName("주문 테이블에 주문이 존재하는 경우 예외를 던진다.")
+        @Test
+        void if_order_exists_then_throw_exception() {
+            // given
+            var orderTableId = UUID.randomUUID();
+            var orderTable = new OrderTable();
+            orderTable.setId(orderTableId);
+
+            given(orderTableRepository.findById(orderTableId))
+                    .willReturn(Optional.of(orderTable));
+
+            given(orderRepository.existsByOrderTableAndStatusNot(orderTable, OrderStatus.COMPLETED))
+                    .willReturn(true);
+
+            // when then
+            assertThatThrownBy(() -> orderTableService.clear(orderTableId))
+                    .isInstanceOf(IllegalStateException.class);
+        }
+
+        @DisplayName("주문 테이블 비우기 성공하면 주문 테이블을 반환한다.")
+        @Test
+        void if_succeed_then_return_order_table() {
+            // given
+            var orderTableId = UUID.randomUUID();
+            var orderTable = new OrderTable();
+            orderTable.setId(orderTableId);
+
+            given(orderTableRepository.findById(orderTableId))
+                    .willReturn(Optional.of(orderTable));
+
+            given(orderRepository.existsByOrderTableAndStatusNot(orderTable, OrderStatus.COMPLETED))
+                    .willReturn(false);
+
+            // when
+            var result = orderTableService.clear(orderTableId);
+
+            // then
+            assertThat(result).isNotNull();
+            Assertions.assertAll(
+                    () -> assertThat(result.getNumberOfGuests()).isZero(),
+                    () -> assertThat(result.isOccupied()).isFalse()
+            );
         }
     }
 }
