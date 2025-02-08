@@ -607,7 +607,71 @@ class OrderServiceTest {
                 // then
                 assertThat(deliveredOrder).isNotNull();
                 assertThat(deliveredOrder.getStatus()).isEqualTo(OrderStatus.DELIVERED);
-                }
+            }
+        }
+
+        @DisplayName("주문 완료")
+        @Nested
+        class Complete {
+
+            @DisplayName("주문 아이디가 null인 경우 예외를 던진다.")
+            @Test
+            void if_order_id_is_null_then_throw_exception() {
+                // when, then
+                assertThatThrownBy(() -> orderService.complete(null))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문이 존재하지 않는 경우 예외를 던진다.")
+            @Test
+            void if_order_does_not_exist_then_throw_exception() {
+                // given
+                var orderId = UUID.randomUUID();
+
+                given(orderRepository.findById(orderId))
+                        .willReturn(Optional.empty());
+
+                // when, then
+                assertThatThrownBy(() -> orderService.complete(orderId))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("배달 완료 상태가 아닌 경우 예외를 던진다.")
+            @ParameterizedTest
+            @ValueSource(strings = {"WAITING", "ACCEPTED", "SERVED", "DELIVERING", "COMPLETED"})
+            void if_order_status_is_not_delivered_then_throw_exception(OrderStatus orderStatus) {
+                // given
+                var orderId = UUID.randomUUID();
+
+                var order = OrderServiceTest.createFixOrder(
+                        orderId, orderStatus, OrderType.DELIVERY, "서울시 강남구", List.of());
+
+                given(orderRepository.findById(order.getId()))
+                        .willReturn(Optional.of(order));
+
+                // when, then
+                assertThatThrownBy(() -> orderService.complete(orderId))
+                        .isInstanceOf(IllegalStateException.class);
+            }
+
+            @DisplayName("주문 완료 성공하면 주문 상태를 완료로 변경한다.")
+            @Test
+            void if_success_then_change_order_status_to_completed() {
+                // given
+                var orderId = UUID.randomUUID();
+
+                var order = createFixOrder(orderId, OrderStatus.DELIVERED, OrderType.DELIVERY, "서울시 강남구", List.of());
+
+                given(orderRepository.findById(order.getId()))
+                        .willReturn(Optional.of(order));
+
+                // when
+                var completedOrder = orderService.complete(orderId);
+
+                // then
+                assertThat(completedOrder).isNotNull();
+                assertThat(completedOrder.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+            }
         }
     }
 }
