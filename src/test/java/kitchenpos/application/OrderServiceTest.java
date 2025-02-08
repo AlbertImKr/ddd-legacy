@@ -116,6 +116,20 @@ class OrderServiceTest {
         return request;
     }
 
+    private static @NotNull Order createFixOrder(
+            UUID orderId,
+            OrderStatus orderStatus,
+            OrderType orderType,
+            OrderTable orderTable
+    ) {
+        var order = new Order();
+        order.setId(orderId);
+        order.setStatus(orderStatus);
+        order.setType(orderType);
+        order.setOrderTable(orderTable);
+        return order;
+    }
+
     private static @NotNull Order createFixOrder(UUID orderId, OrderStatus orderStatus) {
         var order = new Order();
         order.setId(orderId);
@@ -1405,6 +1419,106 @@ class OrderServiceTest {
                 // then
                 assertThat(servedOrder).isNotNull();
                 assertThat(servedOrder.getStatus()).isEqualTo(OrderStatus.SERVED);
+            }
+        }
+
+        @DisplayName("주문 완료")
+        @Nested
+        class Complete {
+
+            @DisplayName("주문 아이디가 null인 경우 예외를 던진다.")
+            @Test
+            void if_order_id_is_null_then_throw_exception() {
+                // when, then
+                assertThatThrownBy(() -> orderService.complete(null))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문이 존재하지 않는 경우 예외를 던진다.")
+            @Test
+            void if_order_does_not_exist_then_throw_exception() {
+                // given
+                var orderId = UUID.randomUUID();
+
+                given(orderRepository.findById(orderId))
+                        .willReturn(Optional.empty());
+
+                // when, then
+                assertThatThrownBy(() -> orderService.complete(orderId))
+                        .isInstanceOf(NoSuchElementException.class);
+            }
+
+            @DisplayName("주문 상태가 서빙 상태가 아닌 경우 예외를 던진다.")
+            @ParameterizedTest
+            @ValueSource(strings = {"WAITING", "ACCEPTED", "DELIVERING", "DELIVERED", "COMPLETED"})
+            void if_order_status_is_not_served_then_throw_exception(OrderStatus orderStatus) {
+                // given
+                var orderId = UUID.randomUUID();
+
+                var order = createFixOrder(orderId, orderStatus, OrderType.EAT_IN);
+
+                given(orderRepository.findById(orderId))
+                        .willReturn(Optional.of(order));
+
+                // when, then
+                assertThatThrownBy(() -> orderService.complete(orderId))
+                        .isInstanceOf(IllegalStateException.class);
+            }
+
+            @DisplayName("주문 테이블의 모든 주문이 완료된 경우 테이블을 비운다.")
+            @Test
+            void if_all_orders_are_completed_then_clear_table() {
+                // given
+                var orderTable = new OrderTable();
+                orderTable.setNumberOfGuests(4);
+                orderTable.setOccupied(true);
+
+                var order = createFixOrder(UUID.randomUUID(), OrderStatus.SERVED, OrderType.EAT_IN, orderTable);
+
+                given(orderRepository.existsByOrderTableAndStatusNot(orderTable, OrderStatus.COMPLETED))
+                        .willReturn(false);
+
+                given(orderRepository.findById(order.getId()))
+                        .willReturn(Optional.of(order));
+
+                // when
+                var result = orderService.complete(order.getId());
+
+                // then
+                assertThat(result).isNotNull();
+                Assertions.assertAll(
+                        () -> assertThat(result.getStatus()).isEqualTo(OrderStatus.COMPLETED),
+                        () -> assertThat(result.getOrderTable().isOccupied()).isFalse(),
+                        () -> assertThat(result.getOrderTable().getNumberOfGuests()).isZero()
+                );
+            }
+
+            @DisplayName("주문 테이블의 모든 주문이 완료되지 않은 경우 테이블을 비우지 않는다.")
+            @Test
+            void if_not_all_orders_are_completed_then_do_not_clear_table() {
+                // given
+                var orderTable = new OrderTable();
+                orderTable.setNumberOfGuests(4);
+                orderTable.setOccupied(true);
+
+                var order = createFixOrder(UUID.randomUUID(), OrderStatus.SERVED, OrderType.EAT_IN, orderTable);
+
+                given(orderRepository.existsByOrderTableAndStatusNot(orderTable, OrderStatus.COMPLETED))
+                        .willReturn(true);
+
+                given(orderRepository.findById(order.getId()))
+                        .willReturn(Optional.of(order));
+
+                // when
+                var result = orderService.complete(order.getId());
+
+                // then
+                assertThat(result).isNotNull();
+                Assertions.assertAll(
+                        () -> assertThat(result.getStatus()).isEqualTo(OrderStatus.COMPLETED),
+                        () -> assertThat(result.getOrderTable().isOccupied()).isTrue(),
+                        () -> assertThat(result.getOrderTable().getNumberOfGuests()).isEqualTo(4)
+                );
             }
         }
     }
