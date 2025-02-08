@@ -1,0 +1,98 @@
+package kitchenpos.ui;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+import kitchenpos.application.MenuService;
+import kitchenpos.config.TestConfig;
+import kitchenpos.domain.Menu;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+@ExtendWith(SpringExtension.class)
+@WebMvcTest(MenuRestController.class)
+@Import(TestConfig.class)
+class MenuRestControllerTest {
+
+    @Autowired
+    MockMvc mockMvc;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @MockBean
+    MenuService menuService;
+
+    @DisplayName("메뉴가 생성에 실패하면 400 Bad Request를 응답한다.")
+    @Test
+    void create_menu_if_failed_then_responds_400_bad_request() throws Exception {
+        // given
+        var body = new HashMap<String, Object>() {{
+            put("name", "");
+            put("price", 0);
+            put("menuGroupId", UUID.randomUUID());
+            put("menuProducts", List.of(new HashMap<String, Object>() {{
+                put("productId", UUID.randomUUID());
+                put("quantity", 0);
+            }}));
+        }};
+        var content = objectMapper.writeValueAsString(body);
+
+        given(menuService.create(any()))
+                .willThrow(new IllegalArgumentException());
+
+        // when
+        mockMvc.perform(post("/api/menus")
+                                .contentType("application/json")
+                                .content(content))
+                // then
+                .andExpect(status().isBadRequest());
+    }
+
+    @DisplayName("메뉴의 가격을 변경하면 200 OK를 응답한다.")
+    @Test
+    void change_price_if_succeeds_then_responds_200_ok() throws Exception {
+        // given
+        var menuId = UUID.randomUUID();
+        var body = new HashMap<String, Object>() {{
+            put("price", 0);
+        }};
+        var content = objectMapper.writeValueAsString(body);
+
+        var menu = new Menu();
+        menu.setId(menuId);
+
+        given(menuService.changePrice(any(), any()))
+                .willReturn(menu);
+
+        // when
+        MvcResult mvcResult = mockMvc.perform(put("/api/menus/" + menuId + "/price")
+                                                      .contentType("application/json")
+                                                      .content(content))
+                // then
+                .andExpect(status().isOk())
+                .andReturn();
+
+        var response = mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        var responseMenu = objectMapper.readValue(response, Menu.class);
+        assertThat(responseMenu.getId()).isEqualTo(menuId);
+    }
+
+}
