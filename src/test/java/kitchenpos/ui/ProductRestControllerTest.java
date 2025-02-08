@@ -2,10 +2,12 @@ package kitchenpos.ui;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.UUID;
 import kitchenpos.application.ProductService;
 import kitchenpos.config.TestConfig;
@@ -101,6 +103,19 @@ class ProductRestControllerTest {
                         put("/api/products/{productId}/price", productId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(content))
+                // then
+                .andExpect(status().isOk());
+    }
+
+    @DisplayName("상품 목록 조회에 성공하면 200 OK를 응답한다.")
+    @Test
+    void list_products_if_succeeds_then_responds_200_ok() throws Exception {
+        // given
+        given(productService.findAll()).willReturn(List.of());
+
+        // when
+        mockMvc.perform(
+                        get("/api/products"))
                 // then
                 .andExpect(status().isOk());
     }
