@@ -161,4 +161,46 @@ class MenuRestControllerTest {
             assertThat(uri).isEqualTo("/api/menus/" + menu.getId());
         }
     }
+
+    @DisplayName("메뉴 활성화")
+    @Nested
+    class DisplayMenu {
+
+        @DisplayName("메뉴 활성화에 성공하면 200 OK를 응답한다.")
+        @Test
+        void if_succeeds_then_responds_200_ok() throws Exception {
+            // given
+            var menuId = UUID.randomUUID();
+            var menu = new Menu();
+            menu.setId(menuId);
+
+            given(menuService.display(any()))
+                    .willReturn(menu);
+
+            // when
+            MvcResult mvcResult = mockMvc.perform(put("/api/menus/" + menuId + "/display"))
+                    // then
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            var response = mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
+            var responseMenu = objectMapper.readValue(response, Menu.class);
+            assertThat(responseMenu.getId()).isEqualTo(menuId);
+        }
+
+        @DisplayName("메뉴 활성화에 실패하면 400 Bad Request를 응답한다.")
+        @Test
+        void if_failed_then_responds_400_bad_request() throws Exception {
+            // given
+            var menuId = UUID.randomUUID();
+
+            given(menuService.display(any()))
+                    .willThrow(new IllegalArgumentException());
+
+            // when
+            mockMvc.perform(put("/api/menus/" + menuId + "/display"))
+                    // then
+                    .andExpect(status().isBadRequest());
+        }
+    }
 }
