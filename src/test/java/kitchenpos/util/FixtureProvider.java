@@ -1,9 +1,7 @@
 package kitchenpos.util;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-import kitchenpos.domain.Menu;
 import kitchenpos.domain.Order;
 import kitchenpos.domain.OrderLineItem;
 import kitchenpos.domain.OrderStatus;
@@ -12,30 +10,6 @@ import kitchenpos.domain.OrderType;
 import org.jetbrains.annotations.NotNull;
 
 public class FixtureProvider {
-
-    public static @NotNull OrderLineItem createFixOrderLineItem(long quantity) {
-        var orderLineItem = new OrderLineItem();
-        orderLineItem.setQuantity(quantity);
-        return orderLineItem;
-    }
-
-    public static @NotNull OrderLineItem createFixOrderLineItem(long quantity, UUID id) {
-        var orderLineItem = createFixOrderLineItem(quantity);
-        orderLineItem.setMenuId(id);
-        return orderLineItem;
-    }
-
-    public static @NotNull OrderLineItem createFixOrderLineItem(long quantity, UUID id, long price) {
-        OrderLineItem orderLineItem = createFixOrderLineItem(quantity, id);
-        orderLineItem.setPrice(BigDecimal.valueOf(price));
-        return orderLineItem;
-    }
-
-    public static @NotNull OrderLineItem createFixOrderLineItem(long quantity, long price, Menu menu) {
-        var orderLineItem = createFixOrderLineItem(quantity, menu.getId(), price);
-        orderLineItem.setMenu(menu);
-        return orderLineItem;
-    }
 
     public static @NotNull Order createFixOrder(OrderType orderType) {
         var request = new Order();

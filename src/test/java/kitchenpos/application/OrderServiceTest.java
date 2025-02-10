@@ -1,7 +1,6 @@
 package kitchenpos.application;
 
 import static kitchenpos.util.FixtureProvider.createFixOrder;
-import static kitchenpos.util.FixtureProvider.createFixOrderLineItem;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,6 +24,7 @@ import kitchenpos.domain.OrderTableRepository;
 import kitchenpos.domain.OrderType;
 import kitchenpos.infra.KitchenridersClient;
 import kitchenpos.util.MenuBuilder;
+import kitchenpos.util.OrderLineItemBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -114,7 +114,7 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_quantity_is_negative_then_throw_exception() {
                 // given
-                var orderLineItem = createFixOrderLineItem(-1L);
+                var orderLineItem = OrderLineItemBuilder.quantity(-1L).build();
 
                 var request = createFixOrder(OrderType.DELIVERY, List.of(orderLineItem));
 
@@ -133,7 +133,10 @@ class OrderServiceTest {
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId());
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .build();
 
                 Order request = createFixOrder(OrderType.DELIVERY, List.of(orderLineItem));
 
@@ -154,7 +157,10 @@ class OrderServiceTest {
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
 
-                OrderLineItem orderLineItem = createFixOrderLineItem(1L, menu.getId());
+                UUID id = menu.getId();
+                OrderLineItem orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .build();
 
                 Order request = createFixOrder(OrderType.DELIVERY, List.of(orderLineItem));
 
@@ -177,7 +183,11 @@ class OrderServiceTest {
                         .price(BigDecimal.valueOf(1000L))
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 2000L);
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .price(BigDecimal.valueOf(2000L))
+                        .build();
 
                 Order request = createFixOrder(OrderType.DELIVERY, List.of(orderLineItem));
 
@@ -201,7 +211,11 @@ class OrderServiceTest {
                         .price(BigDecimal.valueOf(1000L))
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var request = createFixOrder(OrderType.DELIVERY, List.of(orderLineItem), deliveryAddress);
 
@@ -224,7 +238,11 @@ class OrderServiceTest {
                         .price(BigDecimal.valueOf(1000L))
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 String deliveryAddress = "서울시 강남구";
                 var request = createFixOrder(OrderType.DELIVERY, List.of(orderLineItem), deliveryAddress);
@@ -305,7 +323,11 @@ class OrderServiceTest {
                         .price(BigDecimal.valueOf(price))
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, price, menu);
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(menu.getId())
+                        .price(BigDecimal.valueOf(price))
+                        .menu(menu)
+                        .build();
 
                 var orderId = UUID.randomUUID();
                 var deliveryAddress = "서울시 강남구";
@@ -663,7 +685,7 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_quantity_is_negative_then_throw_exception() {
                 // given
-                var orderLineItem = createFixOrderLineItem(-1L);
+                var orderLineItem = OrderLineItemBuilder.quantity(-1L).build();
 
                 var request = createFixOrder(OrderType.TAKEOUT, List.of(orderLineItem));
 
@@ -682,7 +704,10 @@ class OrderServiceTest {
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId());
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .build();
 
                 Order request = createFixOrder(OrderType.TAKEOUT, List.of(orderLineItem));
 
@@ -703,7 +728,10 @@ class OrderServiceTest {
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
 
-                OrderLineItem orderLineItem = createFixOrderLineItem(1L, menu.getId());
+                UUID id = menu.getId();
+                OrderLineItem orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .build();
 
                 Order request = createFixOrder(OrderType.TAKEOUT, List.of(orderLineItem));
 
@@ -726,7 +754,11 @@ class OrderServiceTest {
                         .price(BigDecimal.valueOf(1000L))
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 2000L);
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .price(BigDecimal.valueOf(2000L))
+                        .build();
 
                 Order request = createFixOrder(OrderType.TAKEOUT, List.of(orderLineItem));
 
@@ -749,7 +781,11 @@ class OrderServiceTest {
                         .price(BigDecimal.valueOf(1000L))
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var request = createFixOrder(OrderType.TAKEOUT, List.of(orderLineItem));
 
@@ -1027,7 +1063,10 @@ class OrderServiceTest {
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId());
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .build();
 
                 Order request = createFixOrder(OrderType.EAT_IN, List.of(orderLineItem));
 
@@ -1048,7 +1087,10 @@ class OrderServiceTest {
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
 
-                OrderLineItem orderLineItem = createFixOrderLineItem(1L, menu.getId());
+                UUID id = menu.getId();
+                OrderLineItem orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .build();
 
                 Order request = createFixOrder(OrderType.EAT_IN, List.of(orderLineItem));
 
@@ -1071,7 +1113,11 @@ class OrderServiceTest {
                         .price(BigDecimal.valueOf(1000L))
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 2000L);
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .price(BigDecimal.valueOf(2000L))
+                        .build();
 
                 Order request = createFixOrder(OrderType.EAT_IN, List.of(orderLineItem));
 
@@ -1094,7 +1140,11 @@ class OrderServiceTest {
                         .price(BigDecimal.valueOf(1000L))
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var request = createFixOrder(OrderType.EAT_IN, UUID.randomUUID(), List.of(orderLineItem));
 
@@ -1119,7 +1169,11 @@ class OrderServiceTest {
                         .price(BigDecimal.valueOf(1000L))
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var request = createFixOrder(OrderType.EAT_IN, tableNumber, List.of(orderLineItem));
 
@@ -1147,7 +1201,11 @@ class OrderServiceTest {
                         .price(BigDecimal.valueOf(1000L))
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var request = createFixOrder(OrderType.EAT_IN, tableNumber, List.of(orderLineItem));
 
@@ -1178,7 +1236,11 @@ class OrderServiceTest {
                         .price(BigDecimal.valueOf(1000L))
                         .build();
 
-                var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
+                UUID id = menu.getId();
+                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                        .menuId(id)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var request = createFixOrder(OrderType.EAT_IN, tableNumber, List.of(orderLineItem));
 
