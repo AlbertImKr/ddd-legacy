@@ -1,8 +1,10 @@
 package kitchenpos.util;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 import kitchenpos.domain.Menu;
+import kitchenpos.domain.MenuProduct;
 
 public class MenuBuilder {
 
@@ -10,6 +12,8 @@ public class MenuBuilder {
     private String name;
     private BigDecimal price;
     private boolean displayed;
+    private UUID menuGroupId;
+    private List<MenuProduct> menuProducts;
 
     private MenuBuilder() {
     }
@@ -35,12 +39,24 @@ public class MenuBuilder {
         return this;
     }
 
+    public MenuBuilder menuGroupId(UUID menuGroupId) {
+        this.menuGroupId = menuGroupId;
+        return this;
+    }
+
+    public MenuBuilder menuProducts(List<MenuProduct> menuProducts) {
+        this.menuProducts = menuProducts;
+        return this;
+    }
+
     public Menu build() {
         Menu menu = new Menu();
         menu.setId(id);
         menu.setName(name);
         menu.setPrice(price);
         menu.setDisplayed(displayed);
+        menu.setMenuGroupId(menuGroupId);
+        menu.setMenuProducts(menuProducts);
         return menu;
     }
 }
