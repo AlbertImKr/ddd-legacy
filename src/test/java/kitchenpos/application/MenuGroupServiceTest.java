@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.given;
 import java.util.List;
 import kitchenpos.domain.MenuGroup;
 import kitchenpos.domain.MenuGroupRepository;
+import kitchenpos.util.MenuGroupBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -56,8 +57,7 @@ class MenuGroupServiceTest {
         @NullAndEmptySource
         void if_name_is_null_or_empty_then_throw_exception(String name) {
             // given
-            var request = new MenuGroup();
-            request.setName(name);
+            var request = MenuGroupBuilder.name(name).build();
 
             // when
             assertThatThrownBy(() -> menuGroupService.create(request))
@@ -70,8 +70,7 @@ class MenuGroupServiceTest {
         @ValueSource(strings = {"치킨", "사이드 메뉴", "음료"})
         void if_success_then_return_menu_group(String name) {
             // given
-            var request = new MenuGroup();
-            request.setName(name);
+            var request = MenuGroupBuilder.name(name).build();
             given(menuGroupRepository.save(any(MenuGroup.class)))
                     .will(invocation -> invocation.getArgument(0));
 
