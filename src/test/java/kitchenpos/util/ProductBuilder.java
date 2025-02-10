@@ -7,6 +7,7 @@ import kitchenpos.domain.Product;
 public class ProductBuilder {
 
     private UUID id;
+    private String name;
     private BigDecimal price;
 
     private ProductBuilder() {
@@ -18,6 +19,11 @@ public class ProductBuilder {
         return productBuilder;
     }
 
+    public ProductBuilder name(String name) {
+        this.name = name;
+        return this;
+    }
+
     public ProductBuilder price(BigDecimal price) {
         this.price = price;
         return this;
@@ -26,6 +32,7 @@ public class ProductBuilder {
     public Product build() {
         var targetProduct = new Product();
         targetProduct.setId(id);
+        targetProduct.setName(name);
         targetProduct.setPrice(price);
         return targetProduct;
     }

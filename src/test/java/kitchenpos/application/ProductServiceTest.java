@@ -9,12 +9,13 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import kitchenpos.domain.Menu;
-import kitchenpos.domain.MenuProduct;
 import kitchenpos.domain.MenuRepository;
 import kitchenpos.domain.Product;
 import kitchenpos.domain.ProductRepository;
 import kitchenpos.infra.PurgomalumClient;
+import kitchenpos.util.MenuBuilder;
+import kitchenpos.util.MenuProductBuilder;
+import kitchenpos.util.ProductBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -49,10 +50,11 @@ class ProductServiceTest {
         @Test
         void if_success_then_return_products() {
             // given
-            var product = new Product();
-            product.setId(UUID.randomUUID());
-            product.setName("상품");
-            product.setPrice(BigDecimal.TEN);
+            var product = ProductBuilder.id(UUID.randomUUID())
+                    .name("상품")
+                    .price(BigDecimal.TEN)
+                    .build();
+
             given(productRepository.findAll())
                     .willReturn(List.of(product));
 
@@ -73,13 +75,15 @@ class ProductServiceTest {
     @Nested
     class CreateProduct {
 
-        @DisplayName("상품의 가격은 0원 이하 일 때 예외가 발생한다.")
+        @DisplayName("상품의 가격은 0원 미만 일 때 예외가 발생한다.")
         @ParameterizedTest
-        @ValueSource(ints = {0, -1})
-        void if_price_is_less_than_or_equal_to_zero_then_throw_exception(final int price) {
+        @ValueSource(ints = {-1, -2})
+        void if_price_is_less_than_zero_then_throw_exception(final int price) {
             // given
-            var request = new Product();
-            request.setPrice(BigDecimal.valueOf(price));
+            var request = ProductBuilder.id(UUID.randomUUID())
+                    .name("상품")
+                    .price(BigDecimal.valueOf(price))
+                    .build();
 
             // when
             assertThatThrownBy(() -> productService.create(request))
@@ -92,8 +96,10 @@ class ProductServiceTest {
         @NullSource
         void if_price_is_null_then_throw_exception(final BigDecimal price) {
             // given
-            var request = new Product();
-            request.setPrice(price);
+            var request = ProductBuilder.id(UUID.randomUUID())
+                    .name("상품")
+                    .price(price)
+                    .build();
 
             // when
             assertThatThrownBy(() -> productService.create(request))
@@ -106,9 +112,10 @@ class ProductServiceTest {
         @NullSource
         void if_name_is_null_then_throw_exception(final String name) {
             // given
-            var request = new Product();
-            request.setPrice(BigDecimal.TEN);
-            request.setName(name);
+            var request = ProductBuilder.id(UUID.randomUUID())
+                    .name(name)
+                    .price(BigDecimal.TEN)
+                    .build();
 
             // when
             assertThatThrownBy(() -> productService.create(request))
@@ -117,13 +124,16 @@ class ProductServiceTest {
         }
 
         @DisplayName("상품의 이름에 욕설이 포함되어 있을 때 예외가 발생한다.")
-        @Test
-        void if_name_contains_profanity_then_throw_exception() {
+        @ParameterizedTest
+        @ValueSource(strings = {"욕설", "욕설이 포함된 이름"})
+        void if_name_contains_profanity_then_throw_exception(final String name) {
             // given
-            var request = new Product();
-            request.setPrice(BigDecimal.TEN);
-            request.setName("욕설");
-            given(purgomalumClient.containsProfanity("욕설"))
+            var request = ProductBuilder.id(UUID.randomUUID())
+                    .name(name)
+                    .price(BigDecimal.TEN)
+                    .build();
+
+            given(purgomalumClient.containsProfanity(name))
                     .willReturn(true);
 
             // when
@@ -136,10 +146,12 @@ class ProductServiceTest {
         @Test
         void if_success_then_return_saved_product() {
             // given
-            var request = new Product();
-            request.setPrice(BigDecimal.TEN);
-            request.setName("상품");
-            given(purgomalumClient.containsProfanity("상품"))
+            var request = ProductBuilder.id(UUID.randomUUID())
+                    .name("상품")
+                    .price(BigDecimal.TEN)
+                    .build();
+
+            given(purgomalumClient.containsProfanity(request.getName()))
                     .willReturn(false);
             given(productRepository.save(any(Product.class)))
                     .will(invocation -> invocation.getArgument(0));
@@ -150,8 +162,8 @@ class ProductServiceTest {
             // then
             assertThat(product).isNotNull();
             Assertions.assertAll(
-                    () -> assertThat(product.getName()).isEqualTo("상품"),
-                    () -> assertThat(product.getPrice()).isEqualTo(BigDecimal.TEN)
+                    () -> assertThat(product.getName()).isEqualTo(request.getName()),
+                    () -> assertThat(product.getPrice()).isEqualTo(request.getPrice())
             );
         }
     }
@@ -163,11 +175,13 @@ class ProductServiceTest {
         @DisplayName("상품의 가격은 0원 미만 일 때 예외가 발생한다.")
         @ParameterizedTest
         @ValueSource(ints = {-1, -2})
-        void if_price_is_less_than_or_equal_to_zero_then_throw_exception(final int price) {
+        void if_price_is_less_than_zero_then_throw_exception(final int price) {
             // given
             var productId = UUID.randomUUID();
-            var request = new Product();
-            request.setPrice(BigDecimal.valueOf(price));
+            var request = ProductBuilder.id(productId)
+                    .name("상품")
+                    .price(BigDecimal.valueOf(price))
+                    .build();
 
             // when
             assertThatThrownBy(() -> productService.changePrice(productId, request))
@@ -181,8 +195,10 @@ class ProductServiceTest {
         void if_price_is_null_then_throw_exception(final BigDecimal price) {
             // given
             var productId = UUID.randomUUID();
-            var request = new Product();
-            request.setPrice(price);
+            var request = ProductBuilder.id(productId)
+                    .name("상품")
+                    .price(price)
+                    .build();
 
             // when
             assertThatThrownBy(() -> productService.changePrice(productId, request))
@@ -211,11 +227,15 @@ class ProductServiceTest {
         void if_success_then_return_changed_product() {
             // given
             var productId = UUID.randomUUID();
-            var request = new Product();
-            request.setPrice(BigDecimal.TEN);
-            var product = new Product();
-            product.setId(productId);
-            product.setPrice(BigDecimal.ONE);
+            var request = ProductBuilder.id(productId)
+                    .name("상품")
+                    .price(BigDecimal.TEN)
+                    .build();
+            var product = ProductBuilder.id(productId)
+                    .name(request.getName())
+                    .price(BigDecimal.ONE)
+                    .build();
+
             given(productRepository.findById(productId))
                     .willReturn(Optional.of(product));
             given(menuRepository.findAllByProductId(productId))
@@ -236,31 +256,31 @@ class ProductServiceTest {
                 final int productPrice, final int menuProductPrice, final int menuPrice
         ) {
             // given
-            var productId = UUID.randomUUID();
-            var request = new Product();
-            request.setPrice(BigDecimal.valueOf(productPrice));
+            var request = ProductBuilder.id(UUID.randomUUID())
+                    .name("상품")
+                    .price(BigDecimal.valueOf(productPrice))
+                    .build();
+            var product = ProductBuilder.id(request.getId())
+                    .name(request.getName())
+                    .price(BigDecimal.valueOf(menuProductPrice))
+                    .build();
+            var menuProduct = MenuProductBuilder.productId(product.getId())
+                    .product(product)
+                    .quantity(2)
+                    .build();
+            var menu = MenuBuilder.id(UUID.randomUUID())
+                    .displayed(true)
+                    .menuProducts(List.of(menuProduct))
+                    .price(BigDecimal.valueOf(menuPrice))
+                    .build();
 
-            var product = new Product();
-            product.setId(productId);
-            product.setPrice(BigDecimal.valueOf(menuProductPrice));
-
-            var menuProduct = new MenuProduct();
-            menuProduct.setProduct(product);
-            menuProduct.setQuantity(2L);
-
-            var menu = new Menu();
-            menu.setDisplayed(true);
-            menu.setId(UUID.randomUUID());
-            menu.setMenuProducts(List.of(menuProduct));
-            menu.setPrice(BigDecimal.valueOf(menuPrice));
-
-            given(productRepository.findById(productId))
+            given(productRepository.findById(request.getId()))
                     .willReturn(Optional.of(product));
-            given(menuRepository.findAllByProductId(productId))
+            given(menuRepository.findAllByProductId(request.getId()))
                     .willReturn(List.of(menu));
 
             // when
-            productService.changePrice(productId, request);
+            productService.changePrice(request.getId(), request);
 
             // then
             assertThat(menu.isDisplayed()).isFalse();
@@ -274,22 +294,23 @@ class ProductServiceTest {
         ) {
             // given
             var productId = UUID.randomUUID();
-            var request = new Product();
-            request.setPrice(BigDecimal.valueOf(productPrice));
-
-            var product = new Product();
-            product.setId(productId);
-            product.setPrice(BigDecimal.valueOf(menuProductPrice));
-
-            var menuProduct = new MenuProduct();
-            menuProduct.setProduct(product);
-            menuProduct.setQuantity(2L);
-
-            var menu = new Menu();
-            menu.setDisplayed(true);
-            menu.setId(UUID.randomUUID());
-            menu.setMenuProducts(List.of(menuProduct));
-            menu.setPrice(BigDecimal.valueOf(menuPrice));
+            var request = ProductBuilder.id(productId)
+                    .name("상품")
+                    .price(BigDecimal.valueOf(productPrice))
+                    .build();
+            var product = ProductBuilder.id(productId)
+                    .name(request.getName())
+                    .price(BigDecimal.valueOf(menuProductPrice))
+                    .build();
+            var menuProduct = MenuProductBuilder.productId(productId)
+                    .product(product)
+                    .quantity(2)
+                    .build();
+            var menu = MenuBuilder.id(UUID.randomUUID())
+                    .displayed(true)
+                    .menuProducts(List.of(menuProduct))
+                    .price(BigDecimal.valueOf(menuPrice))
+                    .build();
 
             given(productRepository.findById(productId))
                     .willReturn(Optional.of(product));
