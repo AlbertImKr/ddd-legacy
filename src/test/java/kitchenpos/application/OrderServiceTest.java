@@ -1,6 +1,5 @@
 package kitchenpos.application;
 
-import static kitchenpos.util.FixtureProvider.createFixMenu;
 import static kitchenpos.util.FixtureProvider.createFixOrder;
 import static kitchenpos.util.FixtureProvider.createFixOrderLineItem;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +24,7 @@ import kitchenpos.domain.OrderTable;
 import kitchenpos.domain.OrderTableRepository;
 import kitchenpos.domain.OrderType;
 import kitchenpos.infra.KitchenridersClient;
+import kitchenpos.util.MenuBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -130,7 +130,8 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_menu_does_not_exist_then_throw_exception() {
                 // given
-                var menu = createFixMenu(UUID.randomUUID());
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId());
 
@@ -150,7 +151,8 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_menu_is_not_displayed_then_throw_exception() {
                 // given
-                var menu = createFixMenu(UUID.randomUUID());
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .build();
 
                 OrderLineItem orderLineItem = createFixOrderLineItem(1L, menu.getId());
 
@@ -170,8 +172,10 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_price_is_not_equal_to_menu_price_then_throw_exception() {
                 // given
-
-                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .displayed(true)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 2000L);
 
@@ -192,8 +196,10 @@ class OrderServiceTest {
             @NullAndEmptySource
             void if_delivery_address_is_null_or_empty_then_throw_exception(String deliveryAddress) {
                 // given
-
-                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .displayed(true)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
 
@@ -213,7 +219,10 @@ class OrderServiceTest {
             @Test
             void if_success_then_return_order() {
                 // given
-                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .displayed(true)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
 
@@ -291,7 +300,10 @@ class OrderServiceTest {
             void if_success_then_change_order_status_to_accepted_and_request_delivery() {
                 // given
                 long price = 1000L;
-                var menu = createFixMenu(UUID.randomUUID(), true, price);
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .displayed(true)
+                        .price(BigDecimal.valueOf(price))
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, price, menu);
 
@@ -667,7 +679,8 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_menu_does_not_exist_then_throw_exception() {
                 // given
-                var menu = createFixMenu(UUID.randomUUID());
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId());
 
@@ -687,7 +700,8 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_menu_is_not_displayed_then_throw_exception() {
                 // given
-                var menu = createFixMenu(UUID.randomUUID());
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .build();
 
                 OrderLineItem orderLineItem = createFixOrderLineItem(1L, menu.getId());
 
@@ -707,8 +721,10 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_price_is_not_equal_to_menu_price_then_throw_exception() {
                 // given
-
-                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .displayed(true)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 2000L);
 
@@ -728,7 +744,10 @@ class OrderServiceTest {
             @Test
             void if_success_then_return_order() {
                 // given
-                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .displayed(true)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
 
@@ -1005,7 +1024,8 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_menu_does_not_exist_then_throw_exception() {
                 // given
-                var menu = createFixMenu(UUID.randomUUID());
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId());
 
@@ -1025,7 +1045,8 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_menu_is_not_displayed_then_throw_exception() {
                 // given
-                var menu = createFixMenu(UUID.randomUUID());
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .build();
 
                 OrderLineItem orderLineItem = createFixOrderLineItem(1L, menu.getId());
 
@@ -1045,8 +1066,10 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_price_is_not_equal_to_menu_price_then_throw_exception() {
                 // given
-
-                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .displayed(true)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 2000L);
 
@@ -1066,8 +1089,10 @@ class OrderServiceTest {
             @Test
             void if_table_number_is_null_then_throw_exception() {
                 // given
-
-                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .displayed(true)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
 
@@ -1089,7 +1114,10 @@ class OrderServiceTest {
                 // given
                 var tableNumber = UUID.randomUUID();
 
-                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .displayed(true)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
 
@@ -1114,7 +1142,10 @@ class OrderServiceTest {
                 // given
                 var tableNumber = UUID.randomUUID();
 
-                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .displayed(true)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
 
@@ -1142,7 +1173,10 @@ class OrderServiceTest {
                 // given
                 var tableNumber = UUID.randomUUID();
 
-                var menu = createFixMenu(UUID.randomUUID(), true, 1000L);
+                var menu = MenuBuilder.id(UUID.randomUUID())
+                        .displayed(true)
+                        .price(BigDecimal.valueOf(1000L))
+                        .build();
 
                 var orderLineItem = createFixOrderLineItem(1L, menu.getId(), 1000L);
 

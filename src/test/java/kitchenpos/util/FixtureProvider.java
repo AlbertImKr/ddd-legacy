@@ -13,24 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class FixtureProvider {
 
-    public static @NotNull Menu createFixMenu(UUID id) {
-        var menu = new Menu();
-        menu.setId(id);
-        return menu;
-    }
-
-    public static @NotNull Menu createFixMenu(UUID id, boolean displayed) {
-        var menu = createFixMenu(id);
-        menu.setDisplayed(displayed);
-        return menu;
-    }
-
-    public static @NotNull Menu createFixMenu(UUID id, boolean displayed, long price) {
-        Menu menu = createFixMenu(id, displayed);
-        menu.setPrice(BigDecimal.valueOf(price));
-        return menu;
-    }
-
     public static @NotNull OrderLineItem createFixOrderLineItem(long quantity) {
         var orderLineItem = new OrderLineItem();
         orderLineItem.setQuantity(quantity);
