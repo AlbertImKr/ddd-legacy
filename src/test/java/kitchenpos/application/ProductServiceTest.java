@@ -160,7 +160,7 @@ class ProductServiceTest {
     @Nested
     class ChangeProductPrice {
 
-        @DisplayName("상품의 가격은 0원 이하 일 때 예외가 발생한다.")
+        @DisplayName("상품의 가격은 0원 미만 일 때 예외가 발생한다.")
         @ParameterizedTest
         @ValueSource(ints = {-1, -2})
         void if_price_is_less_than_or_equal_to_zero_then_throw_exception(final int price) {
