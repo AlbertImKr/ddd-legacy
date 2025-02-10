@@ -15,7 +15,7 @@ import java.util.UUID;
 import kitchenpos.application.OrderService;
 import kitchenpos.config.TestConfig;
 import kitchenpos.domain.OrderStatus;
-import kitchenpos.util.FixtureProvider;
+import kitchenpos.util.OrderBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -82,7 +82,10 @@ class OrderRestControllerTest {
             }};
             var content = objectMapper.writeValueAsString(request);
 
-            var order = FixtureProvider.createFixOrder(UUID.randomUUID(), OrderStatus.WAITING);
+            UUID orderId = UUID.randomUUID();
+            var order = OrderBuilder.id(orderId)
+                    .orderStatus(OrderStatus.WAITING)
+                    .build();
             given(orderService.create(any())).willReturn(order);
 
             // when
@@ -126,7 +129,9 @@ class OrderRestControllerTest {
             // given
             var orderId = UUID.randomUUID();
             var content = objectMapper.writeValueAsString(new HashMap<>());
-            given(orderService.accept(any())).willReturn(FixtureProvider.createFixOrder(orderId, OrderStatus.ACCEPTED));
+            given(orderService.accept(any())).willReturn(OrderBuilder.id(orderId)
+                                                                 .orderStatus(OrderStatus.ACCEPTED)
+                                                                 .build());
 
             // when
             mockMvc.perform(
@@ -165,7 +170,9 @@ class OrderRestControllerTest {
             // given
             var orderId = UUID.randomUUID();
             var content = objectMapper.writeValueAsString(new HashMap<>());
-            given(orderService.serve(any())).willReturn(FixtureProvider.createFixOrder(orderId, OrderStatus.SERVED));
+            given(orderService.serve(any())).willReturn(OrderBuilder.id(orderId)
+                                                                .orderStatus(OrderStatus.SERVED)
+                                                                .build());
 
             // when
             mockMvc.perform(
@@ -205,7 +212,9 @@ class OrderRestControllerTest {
             var orderId = UUID.randomUUID();
             var content = objectMapper.writeValueAsString(new HashMap<>());
             given(orderService.startDelivery(any())).willReturn(
-                    FixtureProvider.createFixOrder(orderId, OrderStatus.DELIVERING));
+                    OrderBuilder.id(orderId)
+                            .orderStatus(OrderStatus.DELIVERING)
+                            .build());
 
             // when
             mockMvc.perform(
@@ -245,7 +254,9 @@ class OrderRestControllerTest {
             var orderId = UUID.randomUUID();
             var content = objectMapper.writeValueAsString(new HashMap<>());
             given(orderService.completeDelivery(any())).willReturn(
-                    FixtureProvider.createFixOrder(orderId, OrderStatus.DELIVERED));
+                    OrderBuilder.id(orderId)
+                            .orderStatus(OrderStatus.DELIVERED)
+                            .build());
 
             // when
             mockMvc.perform(
@@ -285,7 +296,9 @@ class OrderRestControllerTest {
             var orderId = UUID.randomUUID();
             var content = objectMapper.writeValueAsString(new HashMap<>());
             given(orderService.complete(any())).willReturn(
-                    FixtureProvider.createFixOrder(orderId, OrderStatus.COMPLETED));
+                    OrderBuilder.id(orderId)
+                            .orderStatus(OrderStatus.COMPLETED)
+                            .build());
 
             // when
             mockMvc.perform(
@@ -305,8 +318,14 @@ class OrderRestControllerTest {
         @Test
         void if_succeeds_then_responds_200_ok() throws Exception {
             // given
-            var order1 = FixtureProvider.createFixOrder(UUID.randomUUID(), OrderStatus.WAITING);
-            var order2 = FixtureProvider.createFixOrder(UUID.randomUUID(), OrderStatus.ACCEPTED);
+            UUID orderId1 = UUID.randomUUID();
+            var order1 = OrderBuilder.id(orderId1)
+                    .orderStatus(OrderStatus.WAITING)
+                    .build();
+            UUID orderId = UUID.randomUUID();
+            var order2 = OrderBuilder.id(orderId)
+                    .orderStatus(OrderStatus.ACCEPTED)
+                    .build();
             given(orderService.findAll()).willReturn(List.of(order1, order2));
 
             // when
