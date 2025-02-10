@@ -13,6 +13,7 @@ import kitchenpos.domain.OrderRepository;
 import kitchenpos.domain.OrderStatus;
 import kitchenpos.domain.OrderTable;
 import kitchenpos.domain.OrderTableRepository;
+import kitchenpos.util.OrderTableBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -99,15 +100,14 @@ class OrderTableServiceTest {
         @Test
         void if_succeed_then_return_order_table() {
             // given
-            var orderTableId = UUID.randomUUID();
-            var orderTable = new OrderTable();
-            orderTable.setId(orderTableId);
+            var orderTable = OrderTableBuilder.id(UUID.randomUUID())
+                    .build();
 
-            given(orderTableRepository.findById(orderTableId))
+            given(orderTableRepository.findById(orderTable.getId()))
                     .willReturn(Optional.of(orderTable));
 
             // when
-            var result = orderTableService.sit(orderTableId);
+            var result = orderTableService.sit(orderTable.getId());
 
             // then
             assertThat(result).isNotNull();
@@ -138,12 +138,11 @@ class OrderTableServiceTest {
         void if_order_exists_then_throw_exception() {
             // given
             var orderTableId = UUID.randomUUID();
-            var orderTable = new OrderTable();
-            orderTable.setId(orderTableId);
+            var orderTable = OrderTableBuilder.id(orderTableId)
+                    .build();
 
             given(orderTableRepository.findById(orderTableId))
                     .willReturn(Optional.of(orderTable));
-
             given(orderRepository.existsByOrderTableAndStatusNot(orderTable, OrderStatus.COMPLETED))
                     .willReturn(true);
 
@@ -201,14 +200,12 @@ class OrderTableServiceTest {
         void if_order_table_does_not_exist_then_throw_exception() {
             // given
             var orderTableId = UUID.randomUUID();
-            var orderTable = new OrderTable();
-            orderTable.setId(orderTableId);
+            var request = OrderTableBuilder.id(orderTableId)
+                    .numberOfGuests(2)
+                    .build();
 
             given(orderTableRepository.findById(orderTableId))
                     .willReturn(Optional.empty());
-
-            var request = new OrderTable();
-            request.setNumberOfGuests(2);
 
             // when then
             assertThatThrownBy(() -> orderTableService.changeNumberOfGuests(orderTableId, request))
@@ -220,15 +217,15 @@ class OrderTableServiceTest {
         void if_order_table_is_empty_then_throw_exception() {
             // given
             var orderTableId = UUID.randomUUID();
-            var orderTable = new OrderTable();
-            orderTable.setId(orderTableId);
-            orderTable.setOccupied(false);
+            var orderTable = OrderTableBuilder.id(orderTableId)
+                    .occupied(false)
+                    .build();
+            var request = OrderTableBuilder.id(orderTableId)
+                    .numberOfGuests(2)
+                    .build();
 
             given(orderTableRepository.findById(orderTableId))
                     .willReturn(Optional.of(orderTable));
-
-            var request = new OrderTable();
-            request.setNumberOfGuests(2);
 
             // when then
             assertThatThrownBy(() -> orderTableService.changeNumberOfGuests(orderTableId, request))
@@ -240,16 +237,16 @@ class OrderTableServiceTest {
         void if_succeed_then_return_order_table() {
             // given
             var orderTableId = UUID.randomUUID();
-            var orderTable = new OrderTable();
-            orderTable.setId(orderTableId);
-            orderTable.setNumberOfGuests(2);
-            orderTable.setOccupied(true);
+            var orderTable = OrderTableBuilder.id(orderTableId)
+                    .numberOfGuests(2)
+                    .occupied(true)
+                    .build();
+            var request = OrderTableBuilder.id(orderTableId)
+                    .numberOfGuests(4)
+                    .build();
 
             given(orderTableRepository.findById(orderTableId))
                     .willReturn(Optional.of(orderTable));
-
-            var request = new OrderTable();
-            request.setNumberOfGuests(4);
 
             // when
             var result = orderTableService.changeNumberOfGuests(orderTableId, request);
@@ -282,17 +279,16 @@ class OrderTableServiceTest {
         @Test
         void if_order_tables_exist_then_return_order_tables() {
             // given
-            var orderTable1 = new OrderTable();
-            orderTable1.setId(UUID.randomUUID());
-            orderTable1.setName("테이블1");
-            orderTable1.setNumberOfGuests(2);
-            orderTable1.setOccupied(true);
-
-            var orderTable2 = new OrderTable();
-            orderTable2.setId(UUID.randomUUID());
-            orderTable2.setName("테이블2");
-            orderTable2.setNumberOfGuests(4);
-            orderTable2.setOccupied(false);
+            var orderTable1 = OrderTableBuilder.id(UUID.randomUUID())
+                    .name("테이블1")
+                    .numberOfGuests(2)
+                    .occupied(true)
+                    .build();
+            var orderTable2 = OrderTableBuilder.id(UUID.randomUUID())
+                    .name("테이블2")
+                    .numberOfGuests(4)
+                    .occupied(false)
+                    .build();
 
             given(orderTableRepository.findAll())
                     .willReturn(List.of(orderTable1, orderTable2));
