@@ -18,19 +18,20 @@ import kitchenpos.domain.Order;
 import kitchenpos.domain.OrderLineItem;
 import kitchenpos.domain.OrderRepository;
 import kitchenpos.domain.OrderStatus;
-import kitchenpos.domain.OrderTable;
 import kitchenpos.domain.OrderTableRepository;
 import kitchenpos.domain.OrderType;
 import kitchenpos.infra.KitchenridersClient;
 import kitchenpos.util.MenuBuilder;
 import kitchenpos.util.OrderBuilder;
 import kitchenpos.util.OrderLineItemBuilder;
+import kitchenpos.util.OrderTableBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
@@ -122,8 +123,8 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_quantity_is_negative_then_throw_exception() {
                 // given
-                var orderLineItem = OrderLineItemBuilder.quantity(-1L).build();
-
+                var orderLineItem = OrderLineItemBuilder.quantity(-1L)
+                        .build();
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.DELIVERY)
                         .orderLineItems(List.of(orderLineItem))
@@ -143,12 +144,9 @@ class OrderServiceTest {
                 // given
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.DELIVERY)
                         .orderLineItems(List.of(orderLineItem))
@@ -170,12 +168,9 @@ class OrderServiceTest {
                 // given
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.DELIVERY)
                         .orderLineItems(List.of(orderLineItem))
@@ -199,13 +194,10 @@ class OrderServiceTest {
                         .displayed(true)
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .price(BigDecimal.valueOf(2000L))
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.DELIVERY)
                         .orderLineItems(List.of(orderLineItem))
@@ -230,13 +222,10 @@ class OrderServiceTest {
                         .displayed(true)
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.DELIVERY)
                         .deliveryAddress(deliveryAddress)
@@ -261,17 +250,13 @@ class OrderServiceTest {
                         .displayed(true)
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
-                String deliveryAddress = "서울시 강남구";
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.DELIVERY)
-                        .deliveryAddress(deliveryAddress)
+                        .deliveryAddress("서울시 강남구")
                         .orderLineItems(List.of(orderLineItem))
                         .build();
 
@@ -293,7 +278,7 @@ class OrderServiceTest {
                         () -> assertThat(order.getStatus()).isEqualTo(OrderStatus.WAITING),
                         () -> assertThat(order.getOrderDateTime()).isNotNull(),
                         () -> assertThat(order.getOrderLineItems()).hasSize(1),
-                        () -> assertThat(order.getDeliveryAddress()).isEqualTo(deliveryAddress)
+                        () -> assertThat(order.getDeliveryAddress()).isEqualTo(request.getDeliveryAddress())
                 );
             }
         }
@@ -330,7 +315,6 @@ class OrderServiceTest {
             void if_order_status_is_not_waiting_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(orderStatus)
                         .orderType(OrderType.DELIVERY)
@@ -338,7 +322,7 @@ class OrderServiceTest {
                         .orderLineItems(List.of())
                         .build();
 
-                given(orderRepository.findById(orderId))
+                given(orderRepository.findById(order.getId()))
                         .willReturn(Optional.of(order));
 
                 // when, then
@@ -347,40 +331,49 @@ class OrderServiceTest {
             }
 
             @DisplayName("주문 접수 성공하면 주문 상태를 접수로 변경되고 배달 업체에 배달 요청을 한다.")
-            @Test
-            void if_success_then_change_order_status_to_accepted_and_request_delivery() {
+            @ParameterizedTest
+            @CsvSource({
+                    "1000, 1, 1000, 1000",
+                    "1000, 2, 2000, 2000",
+                    "1000, 3, 3000, 3000"
+            })
+            void if_success_then_change_order_status_to_accepted_and_request_delivery(
+                    long menuPrice,
+                    long orderLineItemQuantity,
+                    long orderLIneItemPrice,
+                    long expectedOrderPrice
+            ) {
                 // given
-                long price = 1000L;
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .displayed(true)
-                        .price(BigDecimal.valueOf(price))
+                        .price(BigDecimal.valueOf(menuPrice))
                         .build();
-
-                var orderLineItem = OrderLineItemBuilder.quantity(1L)
+                var orderLineItem = OrderLineItemBuilder.quantity(orderLineItemQuantity)
                         .menuId(menu.getId())
-                        .price(BigDecimal.valueOf(price))
+                        .price(BigDecimal.valueOf(orderLIneItemPrice))
                         .menu(menu)
                         .build();
-
-                var orderId = UUID.randomUUID();
-                var deliveryAddress = "서울시 강남구";
-                var order = OrderBuilder.id(orderId)
+                var order = OrderBuilder.id(UUID.randomUUID())
                         .orderStatus(OrderStatus.WAITING)
                         .orderType(OrderType.DELIVERY)
-                        .deliveryAddress(deliveryAddress)
+                        .deliveryAddress("서울시 강남구")
                         .orderLineItems(List.of(orderLineItem))
                         .build();
 
-                given(orderRepository.findById(orderId))
+                given(orderRepository.findById(order.getId()))
                         .willReturn(Optional.of(order));
 
                 // when
-                var acceptedOrder = orderService.accept(orderId);
+                var acceptedOrder = orderService.accept(order.getId());
 
                 // then
                 assertThat(acceptedOrder).isNotNull();
                 assertThat(acceptedOrder.getStatus()).isEqualTo(OrderStatus.ACCEPTED);
-                verify(kitchenridersClient).requestDelivery(orderId, BigDecimal.valueOf(price), deliveryAddress);
+                verify(kitchenridersClient).requestDelivery(
+                        order.getId(),
+                        BigDecimal.valueOf(expectedOrderPrice),
+                        order.getDeliveryAddress()
+                );
             }
         }
 
@@ -416,7 +409,6 @@ class OrderServiceTest {
             void if_order_status_is_not_accepted_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(orderStatus)
                         .orderType(OrderType.DELIVERY)
@@ -437,7 +429,6 @@ class OrderServiceTest {
             void if_success_then_change_order_status_to_served() {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(OrderStatus.ACCEPTED)
                         .orderType(OrderType.DELIVERY)
@@ -489,7 +480,6 @@ class OrderServiceTest {
             void if_order_type_is_not_delivery_then_throw_exception(OrderType orderType) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(OrderStatus.SERVED)
                         .orderType(orderType)
@@ -509,7 +499,6 @@ class OrderServiceTest {
             void if_order_status_is_not_served_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(orderStatus)
                         .orderType(OrderType.DELIVERY)
@@ -530,7 +519,6 @@ class OrderServiceTest {
             void if_success_then_change_order_status_to_delivering() {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(OrderStatus.SERVED)
                         .orderType(OrderType.DELIVERY)
@@ -582,7 +570,6 @@ class OrderServiceTest {
             void if_order_status_is_not_delivering_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(orderStatus)
                         .orderType(OrderType.DELIVERY)
@@ -603,7 +590,6 @@ class OrderServiceTest {
             void if_success_then_change_order_status_to_delivered() {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(OrderStatus.DELIVERING)
                         .orderType(OrderType.DELIVERY)
@@ -655,7 +641,6 @@ class OrderServiceTest {
             void if_order_status_is_not_delivered_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(orderStatus)
                         .orderType(OrderType.DELIVERY)
@@ -676,7 +661,6 @@ class OrderServiceTest {
             void if_success_then_change_order_status_to_completed() {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(OrderStatus.DELIVERED)
                         .orderType(OrderType.DELIVERY)
@@ -764,8 +748,8 @@ class OrderServiceTest {
             @Test
             void if_order_line_item_quantity_is_negative_then_throw_exception() {
                 // given
-                var orderLineItem = OrderLineItemBuilder.quantity(-1L).build();
-
+                var orderLineItem = OrderLineItemBuilder.quantity(-1L)
+                        .build();
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.TAKEOUT)
                         .orderLineItems(List.of(orderLineItem))
@@ -785,12 +769,9 @@ class OrderServiceTest {
                 // given
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.TAKEOUT)
                         .orderLineItems(List.of(orderLineItem))
@@ -812,12 +793,9 @@ class OrderServiceTest {
                 // given
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.TAKEOUT)
                         .orderLineItems(List.of(orderLineItem))
@@ -834,20 +812,26 @@ class OrderServiceTest {
             }
 
             @DisplayName("주문 상세 항목의 가격이 메뉴의 가격과 다른 경우 예외를 던진다.")
-            @Test
-            void if_order_line_item_price_is_not_equal_to_menu_price_then_throw_exception() {
+            @ParameterizedTest
+            @CsvSource({
+                    "1000, 1, 2000",
+                    "500, 2, 1100",
+                    "600, 4, 2500"
+            })
+            void if_order_line_item_price_is_not_equal_to_menu_price_then_throw_exception(
+                    long menuPrice,
+                    long orderLineItemQuantity,
+                    long orderLineItemPrice
+            ) {
                 // given
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .displayed(true)
-                        .price(BigDecimal.valueOf(1000L))
+                        .price(BigDecimal.valueOf(menuPrice))
                         .build();
-
-                UUID id = menu.getId();
-                var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
-                        .price(BigDecimal.valueOf(2000L))
+                var orderLineItem = OrderLineItemBuilder.quantity(orderLineItemQuantity)
+                        .menuId(menu.getId())
+                        .price(BigDecimal.valueOf(orderLineItemPrice))
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.TAKEOUT)
                         .orderLineItems(List.of(orderLineItem))
@@ -871,13 +855,10 @@ class OrderServiceTest {
                         .displayed(true)
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.TAKEOUT)
                         .orderLineItems(List.of(orderLineItem))
@@ -887,7 +868,6 @@ class OrderServiceTest {
                         .willReturn(List.of(menu));
                 given(menuRepository.findById(menu.getId()))
                         .willReturn(Optional.of(menu));
-
                 given(orderRepository.save(any(Order.class)))
                         .will(invocation -> invocation.getArgument(0));
 
@@ -937,7 +917,6 @@ class OrderServiceTest {
             void if_order_status_is_not_waiting_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(orderStatus)
                         .orderType(OrderType.TAKEOUT)
@@ -956,7 +935,6 @@ class OrderServiceTest {
             void if_success_then_change_order_status_to_accepted() {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(OrderStatus.WAITING)
                         .orderType(OrderType.TAKEOUT)
@@ -1006,7 +984,6 @@ class OrderServiceTest {
             void if_order_status_is_not_accepted_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(orderStatus)
                         .orderType(OrderType.TAKEOUT)
@@ -1025,7 +1002,6 @@ class OrderServiceTest {
             void if_success_then_change_order_status_to_served() {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(OrderStatus.ACCEPTED)
                         .orderType(OrderType.TAKEOUT)
@@ -1075,7 +1051,6 @@ class OrderServiceTest {
             void if_order_status_is_not_served_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(orderStatus)
                         .orderType(OrderType.TAKEOUT)
@@ -1094,7 +1069,6 @@ class OrderServiceTest {
             void if_success_then_change_order_status_to_completed() {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(OrderStatus.SERVED)
                         .orderType(OrderType.TAKEOUT)
@@ -1182,12 +1156,9 @@ class OrderServiceTest {
                 // given
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.EAT_IN)
                         .orderLineItems(List.of(orderLineItem))
@@ -1209,12 +1180,9 @@ class OrderServiceTest {
                 // given
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.EAT_IN)
                         .orderLineItems(List.of(orderLineItem))
@@ -1238,13 +1206,10 @@ class OrderServiceTest {
                         .displayed(true)
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .price(BigDecimal.valueOf(2000L))
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.EAT_IN)
                         .orderLineItems(List.of(orderLineItem))
@@ -1268,17 +1233,13 @@ class OrderServiceTest {
                         .displayed(true)
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
-                UUID orderTableId = UUID.randomUUID();
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.EAT_IN)
-                        .orderTableId(orderTableId)
+                        .orderTableId(UUID.randomUUID())
                         .orderLineItems(List.of(orderLineItem))
                         .build();
 
@@ -1296,22 +1257,17 @@ class OrderServiceTest {
             @Test
             void if_table_does_not_exist_then_throw_exception() {
                 // given
-                var tableNumber = UUID.randomUUID();
-
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .displayed(true)
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.EAT_IN)
-                        .orderTableId(tableNumber)
+                        .orderTableId(UUID.randomUUID())
                         .orderLineItems(List.of(orderLineItem))
                         .build();
 
@@ -1319,8 +1275,7 @@ class OrderServiceTest {
                         .willReturn(List.of(menu));
                 given(menuRepository.findById(menu.getId()))
                         .willReturn(Optional.of(menu));
-
-                given(orderTableRepository.findById(tableNumber))
+                given(orderTableRepository.findById(request.getOrderTableId()))
                         .willReturn(Optional.empty());
 
                 // when, then
@@ -1332,22 +1287,20 @@ class OrderServiceTest {
             @Test
             void if_table_is_not_displayed_then_throw_exception() {
                 // given
-                var tableNumber = UUID.randomUUID();
-
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .displayed(true)
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
+                var orderTable = OrderTableBuilder.id(UUID.randomUUID())
+                        .occupied(false)
+                        .build();
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.EAT_IN)
-                        .orderTableId(tableNumber)
+                        .orderTableId(orderTable.getId())
                         .orderLineItems(List.of(orderLineItem))
                         .build();
 
@@ -1355,11 +1308,7 @@ class OrderServiceTest {
                         .willReturn(List.of(menu));
                 given(menuRepository.findById(menu.getId()))
                         .willReturn(Optional.of(menu));
-
-                var orderTable = new OrderTable();
-                orderTable.setOccupied(false);
-
-                given(orderTableRepository.findById(tableNumber))
+                given(orderTableRepository.findById(request.getOrderTableId()))
                         .willReturn(Optional.of(orderTable));
 
                 // when, then
@@ -1371,22 +1320,20 @@ class OrderServiceTest {
             @Test
             void if_success_then_return_order() {
                 // given
-                var tableNumber = UUID.randomUUID();
-
+                var orderTable = OrderTableBuilder.id(UUID.randomUUID())
+                        .occupied(true)
+                        .build();
                 var menu = MenuBuilder.id(UUID.randomUUID())
                         .displayed(true)
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
-                UUID id = menu.getId();
                 var orderLineItem = OrderLineItemBuilder.quantity(1L)
-                        .menuId(id)
+                        .menuId(menu.getId())
                         .price(BigDecimal.valueOf(1000L))
                         .build();
-
                 var request = OrderBuilder.id(UUID.randomUUID())
                         .orderType(OrderType.EAT_IN)
-                        .orderTableId(tableNumber)
+                        .orderTableId(orderTable.getId())
                         .orderLineItems(List.of(orderLineItem))
                         .build();
 
@@ -1394,13 +1341,8 @@ class OrderServiceTest {
                         .willReturn(List.of(menu));
                 given(menuRepository.findById(menu.getId()))
                         .willReturn(Optional.of(menu));
-
-                var orderTable = new OrderTable();
-                orderTable.setOccupied(true);
-
-                given(orderTableRepository.findById(tableNumber))
+                given(orderTableRepository.findById(request.getOrderTableId()))
                         .willReturn(Optional.of(orderTable));
-
                 given(orderRepository.save(any(Order.class)))
                         .will(invocation -> invocation.getArgument(0));
 
@@ -1451,7 +1393,6 @@ class OrderServiceTest {
             void if_order_status_is_not_waiting_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(orderStatus)
                         .orderType(OrderType.EAT_IN)
@@ -1470,7 +1411,6 @@ class OrderServiceTest {
             void if_success_then_change_order_status_to_accepted() {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(OrderStatus.WAITING)
                         .orderType(OrderType.EAT_IN)
@@ -1520,7 +1460,6 @@ class OrderServiceTest {
             void if_order_status_is_not_accepted_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(orderStatus)
                         .orderType(OrderType.EAT_IN)
@@ -1539,7 +1478,6 @@ class OrderServiceTest {
             void if_success_then_change_order_status_to_served() {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(OrderStatus.ACCEPTED)
                         .orderType(OrderType.EAT_IN)
@@ -1589,7 +1527,6 @@ class OrderServiceTest {
             void if_order_status_is_not_served_then_throw_exception(OrderStatus orderStatus) {
                 // given
                 var orderId = UUID.randomUUID();
-
                 var order = OrderBuilder.id(orderId)
                         .orderStatus(orderStatus)
                         .orderType(OrderType.EAT_IN)
@@ -1607,12 +1544,11 @@ class OrderServiceTest {
             @Test
             void if_all_orders_are_completed_then_clear_table() {
                 // given
-                var orderTable = new OrderTable();
-                orderTable.setNumberOfGuests(4);
-                orderTable.setOccupied(true);
-
-                UUID orderId = UUID.randomUUID();
-                var order = OrderBuilder.id(orderId)
+                var orderTable = OrderTableBuilder.id(UUID.randomUUID())
+                        .occupied(true)
+                        .numberOfGuests(4)
+                        .build();
+                var order = OrderBuilder.id(UUID.randomUUID())
                         .orderStatus(OrderStatus.SERVED)
                         .orderType(OrderType.EAT_IN)
                         .orderTable(orderTable)
@@ -1620,7 +1556,6 @@ class OrderServiceTest {
 
                 given(orderRepository.existsByOrderTableAndStatusNot(orderTable, OrderStatus.COMPLETED))
                         .willReturn(false);
-
                 given(orderRepository.findById(order.getId()))
                         .willReturn(Optional.of(order));
 
@@ -1640,12 +1575,11 @@ class OrderServiceTest {
             @Test
             void if_not_all_orders_are_completed_then_do_not_clear_table() {
                 // given
-                var orderTable = new OrderTable();
-                orderTable.setNumberOfGuests(4);
-                orderTable.setOccupied(true);
-
-                UUID orderId = UUID.randomUUID();
-                var order = OrderBuilder.id(orderId)
+                var orderTable = OrderTableBuilder.id(UUID.randomUUID())
+                        .occupied(true)
+                        .numberOfGuests(4)
+                        .build();
+                var order = OrderBuilder.id(UUID.randomUUID())
                         .orderStatus(OrderStatus.SERVED)
                         .orderType(OrderType.EAT_IN)
                         .orderTable(orderTable)
@@ -1653,7 +1587,6 @@ class OrderServiceTest {
 
                 given(orderRepository.existsByOrderTableAndStatusNot(orderTable, OrderStatus.COMPLETED))
                         .willReturn(true);
-
                 given(orderRepository.findById(order.getId()))
                         .willReturn(Optional.of(order));
 
@@ -1692,8 +1625,7 @@ class OrderServiceTest {
         @Test
         void if_orders_exist_then_return_order_list() {
             // given
-            UUID orderId = UUID.randomUUID();
-            var order = OrderBuilder.id(orderId)
+            var order = OrderBuilder.id(UUID.randomUUID())
                     .orderStatus(OrderStatus.WAITING)
                     .orderType(OrderType.DELIVERY)
                     .build();
