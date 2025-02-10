@@ -77,7 +77,7 @@ class OrderTableServiceTest {
         }
     }
 
-    @DisplayName("주문 테일블 사용")
+    @DisplayName("주문 테이블 사용")
     @Nested
     class SitOrderTable {
 

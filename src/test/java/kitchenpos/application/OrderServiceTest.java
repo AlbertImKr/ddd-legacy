@@ -146,7 +146,7 @@ class OrderServiceTest {
                         .isInstanceOf(NoSuchElementException.class);
             }
 
-            @DisplayName("주문 상세 항목의 메뉴가 미활성화된 경우 예외를 던진다.")
+            @DisplayName("주문 상세 항목의 메뉴가 비활성화된 경우 예외를 던진다.")
             @Test
             void if_order_line_item_menu_is_not_displayed_then_throw_exception() {
                 // given

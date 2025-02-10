@@ -112,7 +112,7 @@ class MenuServiceTest {
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
-        @DisplayName("메뉴의 메뉴 상품 목록이 비여 있으면 예외를 던진다.")
+        @DisplayName("메뉴의 메뉴 상품 목록이 비어 있으면 예외를 던진다.")
         @Test
         void if_menu_products_is_empty_then_throw_exception() {
             // given
